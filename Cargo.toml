@@ -1,0 +1,9 @@
+[package]
+name = "learners"
+version = "0.1.0"
+authors = ["suchin"]
+
+[dependencies]
+ndarray = "*"
+typenum = "*"
+rand="*"
