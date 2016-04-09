@@ -5,5 +5,7 @@ authors = ["suchin"]
 
 [dependencies]
 ndarray = "*"
+ndarray-rand = "*"
+
 typenum = "*"
 rand="*"

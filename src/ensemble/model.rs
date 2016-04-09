@@ -41,6 +41,7 @@ pub struct DecisionTree{
     n_outputs : usize,
     classes : Col<f64>,
     n_classes : usize,
+    used_features : Vec<usize>,
     root: Option<Node>
 }
 
@@ -59,6 +60,7 @@ impl DecisionTree {
             n_outputs : 0,
             classes : RcArray::from_vec(vec![0.0]),
             n_classes : 0,
+            used_features: Vec :: new(),
             root : None
         }
     }
@@ -72,7 +74,6 @@ impl DecisionTree {
                 count += 1;
             }
         }
-        // println!("{:?}", count);
         count
 
     }
@@ -82,60 +83,74 @@ impl DecisionTree {
         let mut b = Vec :: new();
         let mut a_idx = Vec :: new();
         let mut b_idx = Vec :: new();
+        let features = X.column(column);
 
-        for (idx, elem) in X.column(column).indexed_iter(){
+        for (idx, elem) in features.indexed_iter(){
             match elem {
                 x if x <= &value =>{ a.push(*elem); a_idx.push(idx)}
                 x if x > &value => {b.push(*elem); b_idx.push(idx)}
                 _ => continue
             }
         }
+        println!("{:?}", a_idx );
+        println!("{:?}", b_idx );
         (RcArray::from_vec(a),RcArray::from_vec(b),RcArray::from_vec(a_idx),RcArray::from_vec(b_idx))
     }
 
 
 
 
-    pub fn build_tree(X: &Mat<f64>, y: &Col<f64>,
+    pub fn build_tree(&mut self, X: &Mat<f64>, y: &Col<f64>,
                  indices : &Col<usize>,
-                depth: usize, max_depth: i32, min_samples_split: i32,
+                depth: usize
                 ) -> Node {
+        let mut y_subset = Vec :: new();
+        let y_all = y.iter().cloned().collect::<Vec<f64>>();
 
-        let num_positives : i32 = DecisionTree::count_positives(&y, &indices);
-        let probability = num_positives as f64 / indices.len() as f64;
+        for row_idx in indices.iter().cloned() {
+            y_subset.push(y_all[row_idx]);
+        }
+        let num_plus = y_subset.iter().fold(0.0,|a, &b| a + b);
+        let probability = num_plus as f64 / y.len() as f64;
+
+
         if probability == 0.0
             || probability == 1.0
-            || depth > max_depth as usize
-            || indices.len() < min_samples_split as usize {
-
+            || depth > self.max_depth as usize
+            || indices.len() < self.min_samples_split as usize  {
                 return Node::Leaf{probability: probability};
             }
 
             let mut best_feature_idx = 0;
             let mut best_feature_threshold = 0.0 as f64;
             let mut best_impurity = 1.0f64 / 0.0f64;
-
+            // println!("{:?}", self.used_features);
             for feature_idx in 0..X.shape()[1] {
 
                 let (threshold, impurity) = DecisionTree::calculate_split(X, feature_idx, &y, indices);
 
-                if impurity < best_impurity {
+                if impurity < best_impurity && self.used_features.iter().all(|&x| x != feature_idx) {
+                    println!("{:?}", feature_idx);
                     best_feature_idx = feature_idx;
                     best_feature_threshold = threshold;
                     best_impurity = impurity;
                 }
-            }
 
-            let (left_data, right_data, left_data_idx, right_data_idx) = DecisionTree::split_data(X, best_feature_idx, best_feature_threshold);
+
+        }
+
+            self.used_features.push(best_feature_idx);
+            let (left_data, right_data,
+                left_data_idx, right_data_idx) = DecisionTree::split_data(X, best_feature_idx, best_feature_threshold);
+
             if left_data.len() > 0 && right_data.len() > 0 {
 
-                    let left = DecisionTree::build_tree(X, &y,
+                    let left = self.build_tree(X, &y,
                                              &left_data_idx,
-                                             depth + 1, max_depth, min_samples_split);
-                     let right = DecisionTree::build_tree(X, &y,
+                                             depth + 1);
+                     let right = self.build_tree(X, &y,
                                               &right_data_idx,
-                                               depth + 1, max_depth, min_samples_split);
-                    println!("{:?}", depth );
+                                               depth + 1);
                     return Node::Interior {feature: best_feature_idx,
                                        threshold: best_feature_threshold,
                                        children: Box::new((left,
@@ -150,59 +165,48 @@ impl DecisionTree {
 
     pub fn calculate_split(X : &Mat<f64>,feature_idx : usize, y : &Col<f64>, indices : &Col<usize>) -> (f64, f64) {
 
-            let mut values = Vec :: new();
-            let features = X.column(feature_idx);
-            let data = y.iter().cloned().collect::<Vec<f64>>();
+            let mut y_subset = Vec :: new();
+            let mut x_subset = Vec :: new();
+            let y_all = y.iter().cloned().collect::<Vec<f64>>();
 
             for row_idx in indices.iter().cloned() {
-                values.push(data[row_idx])
+                y_subset.push(y_all[row_idx]);
+                x_subset.push(X.get((row_idx,feature_idx)).unwrap());
             }
 
-            let sorted_values = values.sort_by(|a, b| a.partial_cmp(&b).unwrap());
-            let max_value = values.last().unwrap();
+
+            // let y_subset_sorted = y_subset.sort_by(|a, b| a.partial_cmp(&b).unwrap());
+            // let max_value = y_subset_sorted.last().unwrap();
 
             let mut split_impurity = 1.0f64 / 0.0f64;
-            let mut split_x = 0.0;
-
-            let total_count = values.len() as f64;
-            let total_y = data.iter().fold(0.0,|a, &b| a + b);
-
-            let mut cumulative_count = 0.0;
+            let mut threshold = 0.0;
             let mut cumulative_y = 0.0;
+            let mut cumulative_count = 0.0;
 
-            for (&x, &y) in features.iter().zip(values.iter()) {
-
-
+            let mut xy_pairs = x_subset.iter().zip(y_subset.iter()).collect::<Vec<_>>();
+            xy_pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+            // println!("{:?}", xy_pairs);
+            for (&x, &y) in xy_pairs{
                 cumulative_count += 1.0;
                 cumulative_y += y;
 
+                let p_left = cumulative_y / y_all.iter().fold(0.0,|a, &b| a + b) ;
+                let p_right = 1.0 - p_left;
+                let left_proportion = cumulative_count / y_all.len() as f64;
 
-                if x == *max_value {
-                    continue;
-                }
+                let impurity = DecisionTree::gini_impurity(left_proportion,
+                                                                 p_left,
+                                                                 p_right);
+                 if impurity < split_impurity {
+                     split_impurity = impurity;
+                     threshold = *x;
+                 }
+         }
+            (threshold, split_impurity)
 
-                let left_child_proportion = cumulative_count / total_count;
-                let left_child_positive_probability = cumulative_y / cumulative_count;
-                let right_child_positive_probability = (total_y - cumulative_y) /
-                                                       (total_count - cumulative_count);
-
-                let impurity = DecisionTree::proxy_gini_impurity(left_child_proportion,
-                                                                 left_child_positive_probability,
-                                                                 right_child_positive_probability);
-
-                // It's important that this is less than or equal rather
-                // than less than: subject to no decrease in impurity
-                // it's always good to move to a split at a higher value.
-                if impurity <= split_impurity {
-                    split_impurity = impurity;
-                    split_x = x;
-                }
-
-            }
-            (split_x, split_impurity)
         }
 
-        pub fn proxy_gini_impurity(left_child_proportion: f64,
+        pub fn gini_impurity(left_child_proportion: f64,
                                left_child_probability: f64,
                                right_child_probability: f64)
                                -> f64 {
@@ -250,11 +254,11 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 
         let x: i32 = 2;
 
-        let max_depth = 1000;
+        let max_depth = 100;
 
-        let max_leaf_nodes = -1;
+        let max_leaf_nodes = 1;
         let min_samples_leaf = 1;
-        let min_samples_split = 2;
+        let min_samples_split = 2 ;
 
         let max_features = n_features;
         let min_weight_fraction_leaf = 0.0;
@@ -271,10 +275,9 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         self.classes=classes;
         self.n_classes=n_classes;
 
-        self.root= Some(DecisionTree::build_tree(&X, &y,
-                    & RcArray::from_vec((0..X.shape()[1]).collect()), 1, max_depth, min_samples_split));
-
-
+        self.root= Some(self.build_tree(&X, &y, &
+                RcArray::from_vec((0..X.shape()[1]).collect()), 1));
+        println!("{:?}", self.root );
     }
     fn decision(&mut self, X : Mat<f64>){
         unimplemented!();
