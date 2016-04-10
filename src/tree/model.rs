@@ -1,6 +1,5 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
-
 #![allow(non_snake_case)]
 #![allow(unused_variables)]
 
@@ -46,6 +45,7 @@ pub struct DecisionTree{
 }
 
 impl DecisionTree {
+
     pub fn new() -> DecisionTree {
         DecisionTree {
             criterion : "gini".to_string(),
@@ -64,19 +64,7 @@ impl DecisionTree {
             root : None
         }
     }
-    pub fn count_positives(y : &Col<f64>, indices : &Col<usize> ) -> i32{
-        let mut count = 0;
 
-        let data = y.iter().cloned().collect::<Vec<f64>>();
-
-        for row_idx in indices.iter().cloned() {
-            if data[row_idx] > 0.0 {
-                count += 1;
-            }
-        }
-        count
-
-    }
 
     pub fn split_data(X : &Mat<f64>, indices: &Col<usize>, column : usize, value : f64) -> (Col<usize>,Col<usize>){
 
@@ -98,6 +86,68 @@ impl DecisionTree {
 
         (RcArray::from_vec(a_idx),RcArray::from_vec(b_idx))
     }
+
+    pub fn calculate_split(X : &Mat<f64>,feature_idx : usize, y : &Col<f64>, indices : &Col<usize>) -> (f64, f64) {
+
+            let mut y_subset = Vec :: new();
+            let mut x_subset = Vec :: new();
+            let y_all = y.iter().cloned().collect::<Vec<f64>>();
+
+            for row_idx in indices.iter().cloned() {
+                y_subset.push(y_all[row_idx]);
+                x_subset.push(X.get((row_idx,feature_idx)).unwrap());
+            }
+
+
+            // let y_subset_sorted = y_subset.sort_by(|a, b| a.partial_cmp(&b).unwrap());
+            // let max_value = y_subset_sorted.last().unwrap();
+
+            let mut split_impurity = 1.0f64 / 0.0f64;
+            let mut threshold = 0.0;
+            let mut cumulative_y = 0.0;
+            let mut cumulative_count = 0.0;
+
+            let mut xy_pairs = x_subset.iter().zip(y_subset.iter()).collect::<Vec<_>>();
+            xy_pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+            // println!("{:?}", xy_pairs);
+            for (&x, &y) in xy_pairs{
+                cumulative_count += 1.0;
+                cumulative_y += y;
+
+                let p_left = cumulative_y / y_all.iter().fold(0.0,|a, &b| a + b) ;
+
+                let p_right = 1.0 - p_left;
+                let left_proportion = cumulative_count / y_all.len() as f64;
+                // println!("{:?}", (&x, &y) );
+                // println!("{:?}", p_left );
+                // println!("{:?}", left_proportion );
+                let impurity = DecisionTree::gini_impurity(left_proportion,
+                                                                 p_left,
+                                                                 p_right);
+                // println!("{:?}", impurity);
+                 if impurity < split_impurity {
+                     split_impurity = impurity;
+                     threshold = *x;
+                 }
+         }
+            (threshold, split_impurity)
+
+        }
+
+        pub fn gini_impurity(left_child_proportion: f64,
+                               left_child_probability: f64,
+                               right_child_probability: f64)
+                               -> f64 {
+
+            let right_child_proportion = 1.0 - left_child_proportion;
+
+            let left_impurity = 1.0 - left_child_probability.powi(2) -
+                                (1.0 - left_child_probability).powi(2);
+            let right_impurity = 1.0 - right_child_probability.powi(2) -
+                                 (1.0 - right_child_probability).powi(2);
+
+            left_child_proportion * left_impurity + right_child_proportion * right_impurity
+        }
 
 
 
@@ -164,67 +214,7 @@ impl DecisionTree {
 
     }
 
-    pub fn calculate_split(X : &Mat<f64>,feature_idx : usize, y : &Col<f64>, indices : &Col<usize>) -> (f64, f64) {
 
-            let mut y_subset = Vec :: new();
-            let mut x_subset = Vec :: new();
-            let y_all = y.iter().cloned().collect::<Vec<f64>>();
-
-            for row_idx in indices.iter().cloned() {
-                y_subset.push(y_all[row_idx]);
-                x_subset.push(X.get((row_idx,feature_idx)).unwrap());
-            }
-
-
-            // let y_subset_sorted = y_subset.sort_by(|a, b| a.partial_cmp(&b).unwrap());
-            // let max_value = y_subset_sorted.last().unwrap();
-
-            let mut split_impurity = 1.0f64 / 0.0f64;
-            let mut threshold = 0.0;
-            let mut cumulative_y = 0.0;
-            let mut cumulative_count = 0.0;
-
-            let mut xy_pairs = x_subset.iter().zip(y_subset.iter()).collect::<Vec<_>>();
-            xy_pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-            // println!("{:?}", xy_pairs);
-            for (&x, &y) in xy_pairs{
-                cumulative_count += 1.0;
-                cumulative_y += y;
-
-                let p_left = cumulative_y / y_all.iter().fold(0.0,|a, &b| a + b) ;
-
-                let p_right = 1.0 - p_left;
-                let left_proportion = cumulative_count / y_all.len() as f64;
-                // println!("{:?}", (&x, &y) );
-                // println!("{:?}", p_left );
-                // println!("{:?}", left_proportion );
-                let impurity = DecisionTree::gini_impurity(left_proportion,
-                                                                 p_left,
-                                                                 p_right);
-                // println!("{:?}", impurity);
-                 if impurity < split_impurity {
-                     split_impurity = impurity;
-                     threshold = *x;
-                 }
-         }
-            (threshold, split_impurity)
-
-        }
-
-        pub fn gini_impurity(left_child_proportion: f64,
-                               left_child_probability: f64,
-                               right_child_probability: f64)
-                               -> f64 {
-
-            let right_child_proportion = 1.0 - left_child_proportion;
-
-            let left_impurity = 1.0 - left_child_probability.powi(2) -
-                                (1.0 - left_child_probability).powi(2);
-            let right_impurity = 1.0 - right_child_probability.powi(2) -
-                                 (1.0 - right_child_probability).powi(2);
-
-            left_child_proportion * left_impurity + right_child_proportion * right_impurity
-        }
 
         pub fn query_tree(&self, node: &Node, X: &Mat<f64>, row_idx: usize) -> f64 {
            match node {
@@ -259,7 +249,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 
         let x: i32 = 2;
 
-        let max_depth = 100;
+        let max_depth = 500;
 
         let max_leaf_nodes = 1;
         let min_samples_leaf = 1;

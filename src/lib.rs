@@ -6,5 +6,5 @@ extern crate rand;
 extern crate ndarray_rand;
 
 
-pub mod ensemble;
+pub mod tree;
 pub mod traits;

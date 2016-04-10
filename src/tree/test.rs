@@ -2,11 +2,12 @@
 #[cfg(test)
 ]
 mod tests {
-    use ensemble::model::*;
+    use tree::model::*;
     use ndarray::{RcArray, rcarr2};
     use ndarray_rand::RandomExt;
     use traits::SupervisedLearning;
     use rand::distributions::Range;
+
     #[test]
      fn test_gini_impurity() {
          let impurity = DecisionTree::gini_impurity(0.5, 0.5, 0.5);
@@ -35,7 +36,7 @@ mod tests {
     }
 
     #[test]
-    fn calculate_split(){
+    fn test_calculate_split(){
 
         let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
 
@@ -49,27 +50,29 @@ mod tests {
     }
 
     #[test]
-    fn calculate_split_1(){
+    fn test_calculate_split_1(){
         let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
         let y = RcArray::from_vec(vec![1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
         let mut indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
         let (threshold, split_impurity) = DecisionTree::calculate_split(&X, 0, &y, &indices);
-
         assert!(threshold == 0.0);
         assert!(split_impurity == 0.0);
 
     }
 
     #[test]
-    fn test_basic_tree_building() {
+    fn test_tree_building() {
 
         let X = rcarr2(&[[0.0, 1.0], [1.0,0.0]]);
+
         let y = RcArray::from_vec(vec![1.0, 0.0]);
 
         let mut dt = DecisionTree::new();
+
         dt.fit(&X, &y);
+
         let pred = dt.predict(X).ok().unwrap();
-        println!("{:?}", pred );
+
         assert!( y.all_close(&pred, 0.5));
 
     }
