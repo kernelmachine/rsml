@@ -181,7 +181,7 @@ impl DecisionTree {
 
                 let (threshold, impurity) = DecisionTree::calculate_split(X, feature_idx, &y, indices);
                 // println!("{:?}", self.used_features );
-                if impurity < best_impurity && self.used_features.iter().all(|&x| x != feature_idx) {
+                if impurity < best_impurity {
                     // println!("{:?}", feature_idx);
                     best_feature_idx = feature_idx;
                     best_feature_threshold = threshold;
@@ -190,10 +190,8 @@ impl DecisionTree {
 
 
         }
-
             self.used_features.push(best_feature_idx);
             let (left_data_idx, right_data_idx) = DecisionTree::split_data(X, indices, best_feature_idx, best_feature_threshold);
-
             if left_data_idx.len() > 0 && right_data_idx.len() > 0 {
 
                     let left = self.build_tree(X, &y,
@@ -241,19 +239,18 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         let n_outputs = y.shape()[0];
 
         let mut y_cloned = y.iter().cloned().collect::<Vec<f64>>();
-
         y_cloned.sort_by(|a, b| a.partial_cmp(&b).unwrap());
         y_cloned.dedup();
         let classes = RcArray::from_vec(y_cloned);
+
         let n_classes = classes.shape()[0];
 
-        let x: i32 = 2;
 
         let max_depth = 500;
 
         let max_leaf_nodes = 1;
         let min_samples_leaf = 1;
-        let min_samples_split = 2 ;
+        let min_samples_split = 2;
 
         let max_features = n_features;
         let min_weight_fraction_leaf = 0.0;
@@ -270,10 +267,9 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         self.classes=classes;
         self.n_classes=n_classes;
 
-        self.root= Some(self.build_tree(&X, &y, &
-                RcArray::from_vec((0..X.shape()[0]).collect()), 1));
-        // println!("{:?}", self.root );
-    }
+        self.root= Some(self.build_tree(&X, &y, &RcArray::from_vec((0..X.shape()[0]).collect()), 1));
+
+}
     fn decision(&mut self, X : Mat<f64>){
         unimplemented!();
     }
