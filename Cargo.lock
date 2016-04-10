@@ -1,5 +1,5 @@
 [root]
-name = "learners"
+name = "rsml"
 version = "0.1.0"
 dependencies = [
  "ndarray 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",

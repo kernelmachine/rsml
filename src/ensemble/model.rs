@@ -78,23 +78,25 @@ impl DecisionTree {
 
     }
 
-    pub fn split_data(X : &Mat<f64>, column : usize, value : f64) -> (Col<f64>,Col<f64>, Col<usize>,Col<usize>){
-        let mut a = Vec :: new();
-        let mut b = Vec :: new();
+    pub fn split_data(X : &Mat<f64>, indices: &Col<usize>, column : usize, value : f64) -> (Col<usize>,Col<usize>){
+
         let mut a_idx = Vec :: new();
         let mut b_idx = Vec :: new();
-        let features = X.column(column);
+        let mut x_subset = Vec :: new();
 
-        for (idx, elem) in features.indexed_iter(){
+        for row_idx in indices.iter().cloned() {
+            x_subset.push(X.get((row_idx,column)).unwrap());
+        }
+
+        for (idx, &elem) in x_subset.iter().enumerate(){
             match elem {
-                x if x <= &value =>{ a.push(*elem); a_idx.push(idx)}
-                x if x > &value => {b.push(*elem); b_idx.push(idx)}
+                x if x <= &value =>{ a_idx.push(idx)}
+                x if x > &value => {b_idx.push(idx)}
                 _ => continue
             }
         }
-        println!("{:?}", a_idx );
-        println!("{:?}", b_idx );
-        (RcArray::from_vec(a),RcArray::from_vec(b),RcArray::from_vec(a_idx),RcArray::from_vec(b_idx))
+
+        (RcArray::from_vec(a_idx),RcArray::from_vec(b_idx))
     }
 
 
@@ -125,12 +127,12 @@ impl DecisionTree {
             let mut best_feature_threshold = 0.0 as f64;
             let mut best_impurity = 1.0f64 / 0.0f64;
             // println!("{:?}", self.used_features);
-            for feature_idx in 0..X.shape()[1] {
+            for feature_idx in 0..X.shape()[1]{
 
                 let (threshold, impurity) = DecisionTree::calculate_split(X, feature_idx, &y, indices);
-
+                // println!("{:?}", self.used_features );
                 if impurity < best_impurity && self.used_features.iter().all(|&x| x != feature_idx) {
-                    println!("{:?}", feature_idx);
+                    // println!("{:?}", feature_idx);
                     best_feature_idx = feature_idx;
                     best_feature_threshold = threshold;
                     best_impurity = impurity;
@@ -140,10 +142,9 @@ impl DecisionTree {
         }
 
             self.used_features.push(best_feature_idx);
-            let (left_data, right_data,
-                left_data_idx, right_data_idx) = DecisionTree::split_data(X, best_feature_idx, best_feature_threshold);
+            let (left_data_idx, right_data_idx) = DecisionTree::split_data(X, indices, best_feature_idx, best_feature_threshold);
 
-            if left_data.len() > 0 && right_data.len() > 0 {
+            if left_data_idx.len() > 0 && right_data_idx.len() > 0 {
 
                     let left = self.build_tree(X, &y,
                                              &left_data_idx,
@@ -191,12 +192,16 @@ impl DecisionTree {
                 cumulative_y += y;
 
                 let p_left = cumulative_y / y_all.iter().fold(0.0,|a, &b| a + b) ;
+
                 let p_right = 1.0 - p_left;
                 let left_proportion = cumulative_count / y_all.len() as f64;
-
+                // println!("{:?}", (&x, &y) );
+                // println!("{:?}", p_left );
+                // println!("{:?}", left_proportion );
                 let impurity = DecisionTree::gini_impurity(left_proportion,
                                                                  p_left,
                                                                  p_right);
+                // println!("{:?}", impurity);
                  if impurity < split_impurity {
                      split_impurity = impurity;
                      threshold = *x;
@@ -276,12 +281,13 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         self.n_classes=n_classes;
 
         self.root= Some(self.build_tree(&X, &y, &
-                RcArray::from_vec((0..X.shape()[1]).collect()), 1));
-        println!("{:?}", self.root );
+                RcArray::from_vec((0..X.shape()[0]).collect()), 1));
+        // println!("{:?}", self.root );
     }
     fn decision(&mut self, X : Mat<f64>){
         unimplemented!();
     }
+
     fn predict(&mut self, X : Mat<f64>) -> Result<Col<f64>, &'static str>{
         match self.root {
             Some(ref node) => {
