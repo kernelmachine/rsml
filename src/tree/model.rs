@@ -149,7 +149,7 @@ impl DecisionTree {
 
             let mut xy_pairs = x_subset.iter().zip(y_subset.iter()).collect::<Vec<_>>();
             xy_pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-            // println!("{:?}", xy_pairs);
+
             for (&x, &y) in xy_pairs{
                 cumulative_count += 1.0;
                 cumulative_y += y;
@@ -158,13 +158,10 @@ impl DecisionTree {
 
                 let p_right = 1.0 - p_left;
                 let left_proportion = cumulative_count / y_all.len() as f64;
-                // println!("{:?}", (&x, &y) );
-                // println!("{:?}", p_left );
-                // println!("{:?}", left_proportion );
+
                 let impurity = DecisionTree::gini_impurity(left_proportion,
                                                                  p_left,
                                                                  p_right);
-                // println!("{:?}", impurity);
                  if impurity < split_impurity {
                      split_impurity = impurity;
                      threshold = *x;
@@ -237,13 +234,10 @@ impl DecisionTree {
             let mut best_feature_idx = 0;
             let mut best_feature_threshold = 0.0 as f64;
             let mut best_impurity = 1.0f64 / 0.0f64;
-            // println!("{:?}", self.used_features);
             for feature_idx in 0..X.shape()[1]{
 
                 let (threshold, impurity) = DecisionTree::calculate_split(X, feature_idx, &y, indices);
-                // println!("{:?}", self.used_features );
                 if impurity < best_impurity {
-                    // println!("{:?}", feature_idx);
                     best_feature_idx = feature_idx;
                     best_feature_threshold = threshold;
                     best_impurity = impurity;
@@ -299,11 +293,7 @@ impl DecisionTree {
 
 impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 
-    /// Fit training data to decision tree
-    /// # Arguments:
-    ///
-    /// * `X` - training data data
-    /// * `y` - target data
+
     fn fit(&mut self, X : &Mat<f64>, y : &Col<f64>)  {
         let n_features = X.shape()[1];
         let n_outputs = y.shape()[0];
@@ -336,10 +326,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 
 }
 
-    /// Predict on test data
-    /// # Arguments:
-    ///
-    /// * `X` - test data
+
     fn predict(&mut self, X : Mat<f64>) -> Result<Col<f64>, &'static str>{
         match self.root {
             Some(ref node) => {
