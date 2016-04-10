@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["SupervisedLearning","Trait for supervised learning."]],"type":[["Col","Col matrix."],["Mat","Rectangular matrix."]]});

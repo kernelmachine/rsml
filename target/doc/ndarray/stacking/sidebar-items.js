@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["stack","Stack arrays along the given axis.***Errors*** if the arrays have mismatching shapes, apart from along `axis`. (may be made more flexible in the future).<br> ***Errors*** if `arrays` is empty, if `axis` is out of bounds, if the result is larger than is possible to represent."]]});

@@ -7,6 +7,7 @@ use ndarray::{RcArray,Ix, Axis, ArrayBase, arr2};
 use std::cmp;
 use rand::{thread_rng, Rng};
 use traits::SupervisedLearning;
+
 /// Rectangular matrix.
 pub type Mat<A> = RcArray<A, (Ix, Ix)>;
 /// Col matrix.
@@ -15,47 +16,52 @@ pub type Col<A> = RcArray<A, Ix>;
 
 
 #[derive(Debug)]
+/// Node represents a node of the decision tree: Internal or Leaf Node.
 pub enum Node {
-    Interior {
+    Internal {
+        /// Feature split
         feature : usize,
+        /// Feature split threshold
         threshold : f64,
+        /// node left and right children, placed on heap.
         children : Box <(Node, Node)>
     },
     Leaf {
+        /// terminal probability that the sample is of class 1.
         probability : f64
     }
 }
 
 #[derive(Debug)]
+/// DecisionTree represents the full decision tree model
+
 pub struct DecisionTree{
-    criterion : String,
-    splitter : String,
+    /// maximum depth of the tree
     max_depth : i32,
+    /// minimum number of samples to split on
     min_samples_split : i32,
-    min_samples_leaf : i32,
-    min_weight_fraction_leaf : f64,
-    max_features : usize,
-    max_leaf_nodes : i32,
+    /// number of features
     n_features : usize,
+    /// number of outputs
     n_outputs : usize,
+    /// array of classes
     classes : Col<f64>,
+    /// number of classes
     n_classes : usize,
+    /// features split on
     used_features : Vec<usize>,
+    /// root node of tree
     root: Option<Node>
 }
 
 impl DecisionTree {
-
+    /// create new decision tree
     pub fn new() -> DecisionTree {
         DecisionTree {
-            criterion : "gini".to_string(),
-            splitter : "best".to_string(),
+
             max_depth : 50 ,
             min_samples_split : 2,
-            min_samples_leaf : 0  ,
-            min_weight_fraction_leaf : 0.0,
-            max_features : 0,
-            max_leaf_nodes : 0,
+
             n_features : 0,
             n_outputs : 0,
             classes : RcArray::from_vec(vec![0.0]),
@@ -65,21 +71,38 @@ impl DecisionTree {
         }
     }
 
-
-    pub fn split_data(X : &Mat<f64>, indices: &Col<usize>, column : usize, value : f64) -> (Col<usize>,Col<usize>){
+    /// Split a feature column in training data.
+    /// # Arguments:
+    ///
+    /// * `X` - original training data
+    /// * `indices` - indices of data subset fed to node
+    /// * `feature_idx` - index of current feature to split on
+    /// * `threshold` - threshold to apply to current split
+    ///
+    /// # Example:
+    /// ```
+    /// let X = RcArray::random((10,5), Range::new(0.,10.));
+    /// let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);
+    /// let feature_idx = 4;
+    /// let value = 4.0;
+    /// let (left, right) = DecisionTree::split_data(&X,&indices, feature_idx, value);
+    /// assert!(left.iter().all(|&x| X.get((x,feature_idx)).unwrap() <= &value));
+    /// assert!(right.iter().all(|&x| X.get((x,feature_idx)).unwrap() > &value));
+    /// ```
+    pub fn split_data(X : &Mat<f64>, indices: &Col<usize>, feature_idx : usize, threshold : f64) -> (Col<usize>,Col<usize>){
 
         let mut a_idx = Vec :: new();
         let mut b_idx = Vec :: new();
         let mut x_subset = Vec :: new();
 
         for row_idx in indices.iter().cloned() {
-            x_subset.push(X.get((row_idx,column)).unwrap());
+            x_subset.push(X.get((row_idx,feature_idx)).unwrap());
         }
 
         for (idx, &elem) in x_subset.iter().enumerate(){
             match elem {
-                x if x <= &value =>{ a_idx.push(idx)}
-                x if x > &value => {b_idx.push(idx)}
+                x if x <= &threshold =>{ a_idx.push(idx)}
+                x if x > &threshold => {b_idx.push(idx)}
                 _ => continue
             }
         }
@@ -87,6 +110,23 @@ impl DecisionTree {
         (RcArray::from_vec(a_idx),RcArray::from_vec(b_idx))
     }
 
+    /// Determine optimal threshold to split data
+    /// # Arguments:
+    ///
+    /// * `X` - original training data
+    /// * `feature_idx` - index of current feature to split on
+    /// * `y` - original target data
+    /// * `indices` - indices of data subset fed to node
+    ///
+    /// # Example:
+    /// ```
+    /// let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
+    /// let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    /// let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
+    /// let (threshold, split_impurity) = DecisionTree::calculate_split(&X, 0, &y, &indices);
+    /// assert!(threshold == -0.5);
+    /// assert!(split_impurity == 0.0);
+    /// ```
     pub fn calculate_split(X : &Mat<f64>,feature_idx : usize, y : &Col<f64>, indices : &Col<usize>) -> (f64, f64) {
 
             let mut y_subset = Vec :: new();
@@ -134,6 +174,19 @@ impl DecisionTree {
 
         }
 
+        /// Determine the information gain for a split during learning.
+        /// # Arguments:
+        ///
+        /// * `left_child_proportion` - proportion of target data that map to left child data
+        /// * `left_child_probability` - proportion of training data that contain left child data
+        /// * `right_child_probability` - proportion of training data that contain right child data
+        ///
+        /// # Example:
+        /// ```
+        /// let impurity = DecisionTree::gini_impurity(0.2, 1.0, 0.5);
+        /// let expected = 0.8 * 0.5;
+        /// assert!(impurity == expected);
+        /// ```
         pub fn gini_impurity(left_child_proportion: f64,
                                left_child_probability: f64,
                                right_child_probability: f64)
@@ -150,6 +203,14 @@ impl DecisionTree {
         }
 
 
+
+        /// Build a decision tree on training data.
+        /// # Arguments:
+        ///
+        /// * `X` - training data
+        /// * `y` - target data
+        /// * `indices` - indices of data subset fed to node
+        /// * `depth` - current depth of tree
 
 
     pub fn build_tree(&mut self, X: &Mat<f64>, y: &Col<f64>,
@@ -200,7 +261,7 @@ impl DecisionTree {
                      let right = self.build_tree(X, &y,
                                               &right_data_idx,
                                                depth + 1);
-                    return Node::Interior {feature: best_feature_idx,
+                    return Node::Internal {feature: best_feature_idx,
                                        threshold: best_feature_threshold,
                                        children: Box::new((left,
                                                            right))}
@@ -213,10 +274,15 @@ impl DecisionTree {
     }
 
 
-
+        /// Traverse tree to retreive terminal classification probability on new data.
+        /// # Arguments:
+        ///
+        /// * `X` - test data
+        /// * `y` - target data
+        /// * `row_idx` - row index of test sample in test data
         pub fn query_tree(&self, node: &Node, X: &Mat<f64>, row_idx: usize) -> f64 {
            match node {
-               &Node::Interior {feature,
+               &Node::Internal {feature,
                                 threshold,
                                 ref children} => {
                    match X.get((row_idx, feature)).unwrap() <= &threshold {
@@ -233,7 +299,11 @@ impl DecisionTree {
 
 impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 
-
+    /// Fit training data to decision tree
+    /// # Arguments:
+    ///
+    /// * `X` - training data data
+    /// * `y` - target data
     fn fit(&mut self, X : &Mat<f64>, y : &Col<f64>)  {
         let n_features = X.shape()[1];
         let n_outputs = y.shape()[0];
@@ -254,14 +324,9 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 
         let max_features = n_features;
         let min_weight_fraction_leaf = 0.0;
-        self.criterion =  "gini".to_string();
-        self.splitter = "best".to_string();
+
         self.max_depth =max_depth;
         self.min_samples_split =min_samples_split;
-        self.min_samples_leaf=min_samples_leaf;
-        self.min_weight_fraction_leaf=min_weight_fraction_leaf;
-        self.max_features=max_features;
-        self.max_leaf_nodes=max_leaf_nodes;
         self.n_features=n_features;
         self.n_outputs=n_outputs;
         self.classes=classes;
@@ -270,10 +335,11 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         self.root= Some(self.build_tree(&X, &y, &RcArray::from_vec((0..X.shape()[0]).collect()), 1));
 
 }
-    fn decision(&mut self, X : Mat<f64>){
-        unimplemented!();
-    }
 
+    /// Predict on test data
+    /// # Arguments:
+    ///
+    /// * `X` - test data
     fn predict(&mut self, X : Mat<f64>) -> Result<Col<f64>, &'static str>{
         match self.root {
             Some(ref node) => {
