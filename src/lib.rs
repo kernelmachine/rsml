@@ -1,4 +1,5 @@
 #![feature(custom_derive)]
+#[macro_use(s)]
 
 extern crate ndarray;
 extern crate typenum;

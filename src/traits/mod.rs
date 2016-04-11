@@ -14,7 +14,7 @@ pub trait SupervisedLearning<A,B> {
     /// * `X` - training data data
     /// * `y` - target data
     fn fit(&mut self, X : &A, y: &B);
-    
+
     /// Predict on test data
     /// # Arguments:
     ///

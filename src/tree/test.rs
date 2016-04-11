@@ -1,6 +1,5 @@
 #![allow(non_snake_case)]
-#[cfg(test)
-]
+#[cfg(test)]
 mod tests {
     use tree::model::*;
     use ndarray::{RcArray, rcarr2};
@@ -25,12 +24,12 @@ mod tests {
 
 
     #[test]
-    fn test_split_data(){
+    fn test_split(){
         let X = RcArray::random((10,5), Range::new(0.,10.));
         let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);
         let feature_idx = 4;
         let value = 4.0;
-        let (left, right) = DecisionTree::split_data(&X,&indices, feature_idx, value);
+        let (left, right) = DecisionTree::split(X.column(feature_idx),value);
         assert!(left.iter().all(|&x| X.get((x,feature_idx)).unwrap() <= &value));
         assert!(right.iter().all(|&x| X.get((x,feature_idx)).unwrap() > &value))
     }
@@ -42,7 +41,7 @@ mod tests {
 
         let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
         let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
-        let (threshold, split_impurity) = DecisionTree::calculate_split(&X, 0, &y, &indices);
+        let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
 
         assert!(threshold == -0.5);
         assert!(split_impurity == 0.0);
@@ -54,7 +53,7 @@ mod tests {
         let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
         let y = RcArray::from_vec(vec![1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
         let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
-        let (threshold, split_impurity) = DecisionTree::calculate_split(&X, 0, &y, &indices);
+        let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
         assert!(threshold == 0.0);
         assert!(split_impurity == 0.0);
 

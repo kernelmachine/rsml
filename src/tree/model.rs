@@ -3,13 +3,16 @@
 #![allow(non_snake_case)]
 #![allow(unused_variables)]
 
-use ndarray::{RcArray,Ix, Axis, ArrayBase, arr2};
+use ndarray::{RcArray,Ix, Axis, ArrayView, ViewRepr, arr2, stack};
 use std::cmp;
 use rand::{thread_rng, Rng};
 use traits::SupervisedLearning;
 
 /// Rectangular matrix.
 pub type Mat<A> = RcArray<A, (Ix, Ix)>;
+
+pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
+
 /// Col matrix.
 pub type Col<A> = RcArray<A, Ix>;
 
@@ -58,10 +61,8 @@ impl DecisionTree {
     /// create new decision tree
     pub fn new() -> DecisionTree {
         DecisionTree {
-
-            max_depth : 50 ,
-            min_samples_split : 2,
-
+            max_depth : 0,
+            min_samples_split : 0,
             n_features : 0,
             n_outputs : 0,
             classes : RcArray::from_vec(vec![0.0]),
@@ -81,33 +82,34 @@ impl DecisionTree {
     ///
     /// # Example:
     /// ```
-    /// let X = RcArray::random((10,5), Range::new(0.,10.));
-    /// let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);
+    /// extern crate rsml;
+    /// extern crate ndarray;
+    /// extern crate rand;
+    /// extern crate ndarray_rand;
+    /// use ndarray_rand::RandomExt;
+    /// let X = ndarray::RcArray::random((10,5), rand::distributions::Range::new(0.,10.));
+    /// let indices = ndarray::RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);
     /// let feature_idx = 4;
     /// let value = 4.0;
-    /// let (left, right) = DecisionTree::split_data(&X,&indices, feature_idx, value);
+    /// let (left, right) = rsml::tree::model::DecisionTree::split(&X,&indices, feature_idx, value);
     /// assert!(left.iter().all(|&x| X.get((x,feature_idx)).unwrap() <= &value));
     /// assert!(right.iter().all(|&x| X.get((x,feature_idx)).unwrap() > &value));
     /// ```
-    pub fn split_data(X : &Mat<f64>, indices: &Col<usize>, feature_idx : usize, threshold : f64) -> (Col<usize>,Col<usize>){
+    pub fn split(feature : Feature<f64>, threshold : f64) -> (Vec<usize>,Vec<usize>){
 
         let mut a_idx = Vec :: new();
         let mut b_idx = Vec :: new();
-        let mut x_subset = Vec :: new();
 
-        for row_idx in indices.iter().cloned() {
-            x_subset.push(X.get((row_idx,feature_idx)).unwrap());
-        }
 
-        for (idx, &elem) in x_subset.iter().enumerate(){
+        for (idx, &elem) in feature.iter().enumerate(){
             match elem {
-                x if x <= &threshold =>{ a_idx.push(idx)}
-                x if x > &threshold => {b_idx.push(idx)}
+                x if x <= threshold =>{ a_idx.push(idx)}
+                x if x > threshold => {b_idx.push(idx)}
                 _ => continue
             }
         }
 
-        (RcArray::from_vec(a_idx),RcArray::from_vec(b_idx))
+        (a_idx, b_idx)
     }
 
     /// Determine optimal threshold to split data
@@ -127,44 +129,33 @@ impl DecisionTree {
     /// assert!(threshold == -0.5);
     /// assert!(split_impurity == 0.0);
     /// ```
-    pub fn calculate_split(X : &Mat<f64>,feature_idx : usize, y : &Col<f64>, indices : &Col<usize>) -> (f64, f64) {
-
-            let mut y_subset = Vec :: new();
-            let mut x_subset = Vec :: new();
-            let y_all = y.iter().cloned().collect::<Vec<f64>>();
-
-            for row_idx in indices.iter().cloned() {
-                y_subset.push(y_all[row_idx]);
-                x_subset.push(X.get((row_idx,feature_idx)).unwrap());
-            }
+    pub fn find_optimal_split(feature : Feature<f64>, target : &Col<f64>) -> (f64, f64) {
 
 
-            // let y_subset_sorted = y_subset.sort_by(|a, b| a.partial_cmp(&b).unwrap());
-            // let max_value = y_subset_sorted.last().unwrap();
+
 
             let mut split_impurity = 1.0f64 / 0.0f64;
             let mut threshold = 0.0;
             let mut cumulative_y = 0.0;
             let mut cumulative_count = 0.0;
 
-            let mut xy_pairs = x_subset.iter().zip(y_subset.iter()).collect::<Vec<_>>();
+            let mut xy_pairs = feature.iter().zip(target.iter()).collect::<Vec<_>>();
             xy_pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
 
             for (&x, &y) in xy_pairs{
                 cumulative_count += 1.0;
                 cumulative_y += y;
 
-                let p_left = cumulative_y / y_all.iter().fold(0.0,|a, &b| a + b) ;
-
+                let p_left = cumulative_y / target.iter().fold(0.0,|a, &b| a + b) ;
                 let p_right = 1.0 - p_left;
-                let left_proportion = cumulative_count / y_all.len() as f64;
+                let left_proportion = cumulative_count / target.len() as f64;
 
                 let impurity = DecisionTree::gini_impurity(left_proportion,
                                                                  p_left,
                                                                  p_right);
                  if impurity < split_impurity {
                      split_impurity = impurity;
-                     threshold = *x;
+                     threshold = x;
                  }
          }
             (threshold, split_impurity)
@@ -211,15 +202,16 @@ impl DecisionTree {
 
 
     pub fn build_tree(&mut self, X: &Mat<f64>, y: &Col<f64>,
-                 indices : &Col<usize>,
+                 indices : &Vec<usize>,
                 depth: usize
                 ) -> Node {
-        let mut y_subset = Vec :: new();
-        let y_all = y.iter().cloned().collect::<Vec<f64>>();
 
-        for row_idx in indices.iter().cloned() {
-            y_subset.push(y_all[row_idx]);
-        }
+        let x_subset = indices.iter().map(|&x| X.row(x).into_shape((X.shape()[1],1)).ok().unwrap()).collect::<Vec<_>>();
+        let x_subset = stack(Axis(1), x_subset.as_slice()).ok().unwrap();
+
+        let y_subset = RcArray::from_vec(indices.iter().cloned().collect::<Vec<_>>().iter().map(|&x| y[x]).collect::<Vec<_>>());
+
+
         let num_plus = y_subset.iter().fold(0.0,|a, &b| a + b);
         let probability = num_plus as f64 / y.len() as f64;
 
@@ -234,9 +226,10 @@ impl DecisionTree {
             let mut best_feature_idx = 0;
             let mut best_feature_threshold = 0.0 as f64;
             let mut best_impurity = 1.0f64 / 0.0f64;
-            for feature_idx in 0..X.shape()[1]{
+            for (feature_idx,feature) in x_subset.outer_iter().enumerate(){
 
-                let (threshold, impurity) = DecisionTree::calculate_split(X, feature_idx, &y, indices);
+                let (threshold, impurity) = DecisionTree::find_optimal_split(feature, &y_subset);
+
                 if impurity < best_impurity {
                     best_feature_idx = feature_idx;
                     best_feature_threshold = threshold;
@@ -246,13 +239,14 @@ impl DecisionTree {
 
         }
             self.used_features.push(best_feature_idx);
-            let (left_data_idx, right_data_idx) = DecisionTree::split_data(X, indices, best_feature_idx, best_feature_threshold);
+            let best_feature = X.column(best_feature_idx);
+            let (left_data_idx, right_data_idx) = DecisionTree::split(best_feature, best_feature_threshold);
             if left_data_idx.len() > 0 && right_data_idx.len() > 0 {
 
                     let left = self.build_tree(X, &y,
                                              &left_data_idx,
                                              depth + 1);
-                     let right = self.build_tree(X, &y,
+                    let right = self.build_tree(X, &y,
                                               &right_data_idx,
                                                depth + 1);
                     return Node::Internal {feature: best_feature_idx,
@@ -322,8 +316,8 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         self.classes=classes;
         self.n_classes=n_classes;
 
-        self.root= Some(self.build_tree(&X, &y, &RcArray::from_vec((0..X.shape()[0]).collect()), 1));
-
+        self.root= Some(self.build_tree(&X, &y, &(0..X.shape()[0]).collect(), 1));
+        println!("{:?}", self.root );
 }
 
 
