@@ -25,7 +25,7 @@ pub type Col<A> = RcArray<A, Ix>;
 /// This represents the Random Forest.
 pub struct RandomForest {
     /// Vector of Decision Trees
-    trees : Vec<DecisionTree>,
+    pub trees : Vec<DecisionTree>,
 }
 
 impl RandomForest {
