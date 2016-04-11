@@ -40,7 +40,6 @@ mod tests {
 
         let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
-
         assert!(threshold == -0.5);
         assert!(split_impurity == 0.0);
 
@@ -59,16 +58,17 @@ mod tests {
     #[test]
     fn test_tree_building() {
 
-        let X = rcarr2(&[[0.0, 1.0], [1.0,0.0], [1.0,0.0], [1.0,0.0], [1.0,0.0], [1.0,0.0], [1.0,0.0],[1.0,0.0]]);
+        let X = rcarr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
 
-        let y = RcArray::from_vec(vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
+        let y = RcArray::from_vec(vec![1.0, 0.0,0.0,0.0,0.0,1.0,1.0]);
 
         let mut dt = DecisionTree::new();
 
         dt.fit(&X, &y);
 
-        let pred = dt.predict(X).ok().unwrap();
+        let pred = dt.predict(rcarr2(&[[0.5, 0.0]])).ok().unwrap();
         println!("{:?}", pred );
+        // println!("{:?}", dt.root );
         assert!( y.all_close(&pred, 0.5));
 
     }

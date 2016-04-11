@@ -40,21 +40,21 @@ pub enum Node {
 
 pub struct DecisionTree{
     /// maximum depth of the tree
-    max_depth : i32,
+    pub max_depth : i32,
     /// minimum number of samples to split on
-    min_samples_split : i32,
+    pub min_samples_split : i32,
     /// number of features
-    n_features : usize,
+    pub n_features : usize,
     /// number of outputs
-    n_outputs : usize,
+    pub n_outputs : usize,
     /// array of classes
-    classes : Col<f64>,
+    pub classes : Col<f64>,
     /// number of classes
-    n_classes : usize,
+    pub n_classes : usize,
     /// features split on
-    used_features : Vec<usize>,
+    pub used_features : Vec<usize>,
     /// root node of tree
-    root: Option<Node>
+    pub root: Option<Node>
 }
 
 impl DecisionTree {
@@ -213,7 +213,7 @@ impl DecisionTree {
 
 
         let num_plus = y_subset.iter().fold(0.0,|a, &b| a + b);
-        let probability = num_plus as f64 / y.len() as f64;
+        let probability = num_plus as f64 / indices.len() as f64;
 
 
         if probability == 0.0
@@ -227,10 +227,9 @@ impl DecisionTree {
             let mut best_feature_threshold = 0.0 as f64;
             let mut best_impurity = 1.0f64 / 0.0f64;
             for (feature_idx,feature) in x_subset.outer_iter().enumerate(){
-
                 let (threshold, impurity) = DecisionTree::find_optimal_split(feature, &y_subset);
 
-                if impurity < best_impurity {
+                if impurity < best_impurity  {
                     best_feature_idx = feature_idx;
                     best_feature_threshold = threshold;
                     best_impurity = impurity;
@@ -300,7 +299,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         let n_classes = classes.shape()[0];
 
 
-        let max_depth = 500;
+        let max_depth = 15;
 
         let max_leaf_nodes = 1;
         let min_samples_leaf = 1;
