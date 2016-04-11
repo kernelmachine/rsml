@@ -48,9 +48,12 @@
             </a>
         </span><a id='src-221' class='srclink' href='../../../src/rsml/src/random_forest/model.rs.html#26-29' title='goto source code'>[src]</a></span></h1>
 <pre class='rust struct'>pub struct RandomForest {
-    // some fields omitted
+    pub trees: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='../../../rsml/tree/model/struct.DecisionTree.html' title='rsml::tree::model::DecisionTree'>DecisionTree</a>&gt;,
 }</pre><div class='docblock'><p>This represents the Random Forest.</p>
-</div><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../../rsml/random_forest/model/struct.RandomForest.html' title='rsml::random_forest::model::RandomForest'>RandomForest</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(n_estimators: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../../rsml/random_forest/model/struct.RandomForest.html' title='rsml::random_forest::model::RandomForest'>RandomForest</a></code></h4>
+</div><h2 class='fields'>Fields</h2>
+<table><tr class='stab '>
+                                  <td id='structfield.trees'><code>trees</code></td><td><div class='docblock'><p>Vector of Decision Trees</p>
+</div></td></tr></table><h2 id='methods'>Methods</h2><h3 class='impl'><code>impl <a class='struct' href='../../../rsml/random_forest/model/struct.RandomForest.html' title='rsml::random_forest::model::RandomForest'>RandomForest</a></code></h3><div class='impl-items'><h4 id='method.new' class='method'><code>fn <a href='#method.new' class='fnname'>new</a>(n_estimators: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.usize.html'>usize</a>) -&gt; <a class='struct' href='../../../rsml/random_forest/model/struct.RandomForest.html' title='rsml::random_forest::model::RandomForest'>RandomForest</a></code></h4>
 <div class='docblock'><p>Create a new random forest</p>
 
 <h1 id='arguments' class='section-header'><a href='#arguments'>Arguments:</a></h1>
