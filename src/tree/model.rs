@@ -1,7 +1,7 @@
 
-use ndarray::{RcArray,Ix, Axis, ArrayView, stack};
+use ndarray::{RcArray,Ix, ArrayView};
 use traits::SupervisedLearning;
-
+use util::util::{noncontig_2d_slice, noncontig_1d_slice};
 
 /// Rectangular matrix.
 pub type Mat<A> = RcArray<A, (Ix, Ix)>;
@@ -234,22 +234,10 @@ impl DecisionTree {
             let best_feature = train.column(best_feature_idx);
             let (left_data_idx, right_data_idx) = DecisionTree::split(best_feature, best_feature_threshold);
             if left_data_idx.len() > 0 && right_data_idx.len() > 0 {
-                    let left_train = left_data_idx.iter()
-                                        .map(|&x| train.row(x).into_shape((1,train.shape()[1]))
-                                        .ok().unwrap()).collect::<Vec<_>>();
-                    let left_train = stack(Axis(0), left_train.as_slice()).ok().unwrap();
-                    let left_target = RcArray::from_vec(left_data_idx
-                                                .iter().cloned().collect::<Vec<_>>()
-                                                .iter().map(|&x| target[x]).collect::<Vec<_>>());
-
-                    let right_train = right_data_idx.iter()
-                                        .map(|&x| train.row(x).into_shape((1,train.shape()[1]))
-                                        .ok().unwrap()).collect::<Vec<_>>();
-                    let right_train = stack(Axis(0), right_train.as_slice()).ok().unwrap();
-                    let right_target = RcArray::from_vec(right_data_idx
-                                                    .iter().cloned().collect::<Vec<_>>()
-                                                    .iter().map(|&x| target[x]).collect::<Vec<_>>());
-
+                    let left_train = noncontig_2d_slice(train, &left_data_idx);
+                    let left_target = noncontig_1d_slice(target, &left_data_idx);
+                    let right_train = noncontig_2d_slice(train, &right_data_idx);
+                    let right_target = noncontig_1d_slice(target, &right_data_idx);
 
                     let left = self.build_tree(&left_train.to_shared(),
                                                 &left_target.to_shared(),
