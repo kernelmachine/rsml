@@ -487,12 +487,12 @@
     <span class='doccomment'>/// use rand::distributions::Range;</span>
     <span class='doccomment'>/// use rsml::tree::model::DecisionTree;</span>
     <span class='doccomment'>/// fn main(){</span>
-    <span class='doccomment'>/// let z = RcArray::random((10,5), Range::new(0.,10.));</span>
-    <span class='doccomment'>/// let feature_idx = 4;</span>
-    <span class='doccomment'>/// let value = 4.0;</span>
-    <span class='doccomment'>/// let (left, right) = DecisionTree::split(z.column(feature_idx),value);</span>
-    <span class='doccomment'>/// assert!(left.iter().all(|&amp;x| z.get((x,feature_idx)).unwrap() &lt;= &amp;value));</span>
-    <span class='doccomment'>/// assert!(right.iter().all(|&amp;x| z.get((x,feature_idx)).unwrap() &gt; &amp;value))</span>
+    <span class='doccomment'>///     let z = RcArray::random((10,5), Range::new(0.,10.));</span>
+    <span class='doccomment'>///     let feature_idx = 4;</span>
+    <span class='doccomment'>///     let value = 4.0;</span>
+    <span class='doccomment'>///     let (left, right) = DecisionTree::split(z.column(feature_idx),value);</span>
+    <span class='doccomment'>///     assert!(left.iter().all(|&amp;x| z.get((x,feature_idx)).unwrap() &lt;= &amp;value));</span>
+    <span class='doccomment'>///     assert!(right.iter().all(|&amp;x| z.get((x,feature_idx)).unwrap() &gt; &amp;value))</span>
     <span class='doccomment'>/// }</span>
     <span class='doccomment'>/// ```</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>split</span>(<span class='ident'>feature</span> : <span class='ident'>Feature</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>threshold</span> : <span class='ident'>f64</span>) <span class='op'>-&gt;</span> (<span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,<span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>){
@@ -527,11 +527,11 @@
     <span class='doccomment'>/// use ndarray :: {rcarr2, RcArray};</span>
     <span class='doccomment'>/// use rsml::tree::model::*;</span>
     <span class='doccomment'>/// fn main(){</span>
-    <span class='doccomment'>/// let x = rcarr2(&amp;[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);</span>
-    <span class='doccomment'>/// let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);</span>
-    <span class='doccomment'>/// let (threshold, split_impurity) = DecisionTree::find_optimal_split(x.column(0), &amp;y);</span>
-    <span class='doccomment'>/// assert!(threshold == -0.5);</span>
-    <span class='doccomment'>/// assert!(split_impurity == 0.0);</span>
+    <span class='doccomment'>///     let x = rcarr2(&amp;[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);</span>
+    <span class='doccomment'>///     let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);</span>
+    <span class='doccomment'>///     let (threshold, split_impurity) = DecisionTree::find_optimal_split(x.column(0), &amp;y);</span>
+    <span class='doccomment'>///     assert!(threshold == -0.5);</span>
+    <span class='doccomment'>///     assert!(split_impurity == 0.0);</span>
     <span class='doccomment'>/// }</span>
     <span class='doccomment'>/// ```</span>
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>find_optimal_split</span>(<span class='ident'>feature</span> : <span class='ident'>Feature</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> (<span class='ident'>f64</span>, <span class='ident'>f64</span>) {
@@ -579,9 +579,9 @@
         <span class='doccomment'>/// extern crate rsml;</span>
         <span class='doccomment'>/// use rsml::tree::model::DecisionTree;</span>
         <span class='doccomment'>/// fn main(){</span>
-        <span class='doccomment'>/// let impurity = DecisionTree::gini_impurity(0.2, 1.0, 0.5);</span>
-        <span class='doccomment'>/// let expected = 0.8 * 0.5;</span>
-        <span class='doccomment'>/// assert!(impurity == expected);</span>
+        <span class='doccomment'>///     let impurity = DecisionTree::gini_impurity(0.2, 1.0, 0.5);</span>
+        <span class='doccomment'>///     let expected = 0.8 * 0.5;</span>
+        <span class='doccomment'>///     assert!(impurity == expected);</span>
         <span class='doccomment'>/// }</span>
         <span class='doccomment'>/// ```</span>
         <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>gini_impurity</span>(<span class='ident'>left_child_proportion</span>: <span class='ident'>f64</span>,
