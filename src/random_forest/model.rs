@@ -1,10 +1,11 @@
 #[allow(non_snake_case)]
-use ndarray::{RcArray,Ix, Axis, ArrayView, stack};
+use ndarray::{RcArray,Ix, ArrayView};
 use rand::distributions::{IndependentSample, Range};
 
 use rand::StdRng;
 use traits::SupervisedLearning;
 use tree::model::DecisionTree;
+use util::util::{noncontig_1d_slice, noncontig_2d_slice};
 
 /// Rectangular matrix.
 pub type Mat<A> = RcArray<A, (Ix, Ix)>;
@@ -12,49 +13,71 @@ pub type Mat<A> = RcArray<A, (Ix, Ix)>;
 /// Feature view
 pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
 
+/// Feature view
+pub type Sample<'a,A> = ArrayView<'a,A, Ix>;
+
+
 /// Col matrix.
 pub type Col<A> = RcArray<A, Ix>;
 
 
 
-
+/// This represents the Random Forest.
 pub struct RandomForest {
+    /// Vector of Decision Trees
     trees : Vec<DecisionTree>,
 }
 
 impl RandomForest {
-
+    /// Create a new random forest
+    /// # Arguments:
+    ///
+    /// * `n_estimators` - number of decision trees you want
     pub fn new(n_estimators : usize) -> RandomForest {
 
         RandomForest {
             trees :  vec![DecisionTree::new(); n_estimators],
         }
+
     }
 
-    pub fn bootstrap_indices(num_indices: usize) -> Vec<usize> {
-        let range = Range::new(0, num_indices);
+    /// get a random set of indices to map random samples to a decision tree in your forest
+    /// # Arguments:
+    ///
+    /// * `num_indices` - number of samples in the training data
+    pub fn bootstrap(num_samples: usize) -> Vec<usize> {
 
-        (0..num_indices)
+        let range = Range::new(0, num_samples);
+
+        (0..num_samples)
             .map(|_| range.ind_sample(&mut StdRng::new().unwrap()))
             .collect::<Vec<_>>()
+
     }
 }
 
 
 impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
     fn fit(&mut self, train: &Mat<f64>, target: &Col<f64>) {
-
         for tree in self.trees.iter_mut() {
-            let indices = RandomForest::bootstrap_indices(train.rows());
-            let train_subset = indices.iter().map(|&x| train.row(x).into_shape((1,train.shape()[1])).ok().unwrap()).collect::<Vec<_>>();
-            let train_subset = stack(Axis(0), train_subset.as_slice()).ok().unwrap();
-            let target_subset = RcArray::from_vec(indices.iter().cloned().collect::<Vec<_>>().iter().map(|&x| target[x]).collect::<Vec<_>>());
-            tree.fit(&train_subset.to_shared(), &target_subset);
+
+            // get random set of indices
+            let indices = RandomForest::bootstrap(train.rows());
+
+            // sample data
+            let train_subset = noncontig_2d_slice(&train,&indices);
+            let target_subset = noncontig_1d_slice(&target, &indices);
+
+            // train decision tree
+            tree.fit(&train_subset.to_shared(), &target_subset.to_shared());
+
         }
-        
+
     }
 
     fn predict(&mut self, test: &Mat<f64>) -> Result<Col<f64>, &'static str> {
+        // prediction in a random forest is just taking the average of the output of a set of
+        // decision trees trained on random subsets of the data.
 
         let mut df = RcArray::zeros(test.shape()[0]);
 

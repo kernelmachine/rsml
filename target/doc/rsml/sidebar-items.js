@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["traits",""],["tree",""]]});
+initSidebarItems({"mod":[["random_forest",""],["traits",""],["tree",""],["util",""]]});

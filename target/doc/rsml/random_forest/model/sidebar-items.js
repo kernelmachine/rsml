@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["RandomForest","This represents the Random Forest."]],"type":[["Col","Col matrix."],["Feature","Feature view"],["Mat","Rectangular matrix."],["Sample","Feature view"]]});

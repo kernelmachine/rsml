@@ -18,12 +18,12 @@ mod tests {
          let expected = 0.5;
          assert!(impurity == expected);
 
-         let impurity = DecisionTree::gini_impurity(0.5, 1.0, 0.0);
-         let expected = 0.0;
+         let impurity = DecisionTree::gini_impurity(0.8, 0.4, 0.6);
+         let expected = 0.48;
          assert!(impurity == expected);
 
-         let impurity = DecisionTree::gini_impurity(0.2, 1.0, 0.5);
-         let expected = 0.8 * 0.5;
+         let impurity = DecisionTree::gini_impurity(0.3, 1.0, 0.0);
+         let expected = 0.0;
          assert!(impurity == expected);
         }
 
@@ -41,20 +41,25 @@ mod tests {
     #[test]
     fn test_calculate_split(){
 
-        let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
+        let X = rcarr2(&[[-8.0], [-2.0], [0.0], [0.0],[0.0],[0.2],[1.0]]);
 
         let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
-        assert!(threshold == -0.5);
+        assert!(threshold == -2.0);
         assert!(split_impurity == 0.0);
 
     }
 
     #[test]
     fn test_calculate_split_1(){
-        let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
+
+        let X = rcarr2(&[[-8.0], [-2.0], [0.0], [0.0],[0.0],[0.2],[1.0]]);
+
         let y = RcArray::from_vec(vec![1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
+
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
+
         assert!(threshold == 0.0);
         assert!(split_impurity == 0.0);
 
