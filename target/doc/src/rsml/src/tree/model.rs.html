@@ -387,6 +387,11 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
 </pre><pre class='rust '>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>unused_imports</span>)]</span>
 <span class='attribute'>#<span class='op'>!</span>[<span class='ident'>allow</span>(<span class='ident'>dead_code</span>)]</span>
@@ -401,6 +406,7 @@
 <span class='doccomment'>/// Rectangular matrix.</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>Mat</span><span class='op'>&lt;</span><span class='ident'>A</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>RcArray</span><span class='op'>&lt;</span><span class='ident'>A</span>, (<span class='ident'>Ix</span>, <span class='ident'>Ix</span>)<span class='op'>&gt;</span>;
 
+<span class='doccomment'>/// Feature view</span>
 <span class='kw'>pub</span> <span class='kw'>type</span> <span class='ident'>Feature</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>,<span class='ident'>A</span><span class='op'>&gt;</span> <span class='op'>=</span> <span class='ident'>ArrayView</span><span class='op'>&lt;</span><span class='lifetime'>&#39;a</span>,<span class='ident'>A</span>, <span class='ident'>Ix</span><span class='op'>&gt;</span>;
 
 <span class='doccomment'>/// Col matrix.</span>
@@ -430,21 +436,21 @@
 
 <span class='kw'>pub</span> <span class='kw'>struct</span> <span class='ident'>DecisionTree</span>{
     <span class='doccomment'>/// maximum depth of the tree</span>
-    <span class='ident'>max_depth</span> : <span class='ident'>i32</span>,
+    <span class='kw'>pub</span> <span class='ident'>max_depth</span> : <span class='ident'>i32</span>,
     <span class='doccomment'>/// minimum number of samples to split on</span>
-    <span class='ident'>min_samples_split</span> : <span class='ident'>i32</span>,
+    <span class='kw'>pub</span> <span class='ident'>min_samples_split</span> : <span class='ident'>i32</span>,
     <span class='doccomment'>/// number of features</span>
-    <span class='ident'>n_features</span> : <span class='ident'>usize</span>,
+    <span class='kw'>pub</span> <span class='ident'>n_features</span> : <span class='ident'>usize</span>,
     <span class='doccomment'>/// number of outputs</span>
-    <span class='ident'>n_outputs</span> : <span class='ident'>usize</span>,
+    <span class='kw'>pub</span> <span class='ident'>n_outputs</span> : <span class='ident'>usize</span>,
     <span class='doccomment'>/// array of classes</span>
-    <span class='ident'>classes</span> : <span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>,
+    <span class='kw'>pub</span> <span class='ident'>classes</span> : <span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>,
     <span class='doccomment'>/// number of classes</span>
-    <span class='ident'>n_classes</span> : <span class='ident'>usize</span>,
+    <span class='kw'>pub</span> <span class='ident'>n_classes</span> : <span class='ident'>usize</span>,
     <span class='doccomment'>/// features split on</span>
-    <span class='ident'>used_features</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
+    <span class='kw'>pub</span> <span class='ident'>used_features</span> : <span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
     <span class='doccomment'>/// root node of tree</span>
-    <span class='ident'>root</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Node</span><span class='op'>&gt;</span>
+    <span class='kw'>pub</span> <span class='ident'>root</span>: <span class='prelude-ty'>Option</span><span class='op'>&lt;</span><span class='ident'>Node</span><span class='op'>&gt;</span>
 }
 
 <span class='kw'>impl</span> <span class='ident'>DecisionTree</span> {
@@ -472,25 +478,30 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Example:</span>
     <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>/// let X = RcArray::random((10,5), Range::new(0.,10.));</span>
-    <span class='doccomment'>/// let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);</span>
+    <span class='doccomment'>/// extern crate rsml;</span>
+    <span class='doccomment'>/// extern crate ndarray;</span>
+    <span class='doccomment'>/// extern crate rand;</span>
+    <span class='doccomment'>/// extern crate ndarray_rand;</span>
+    <span class='doccomment'>/// use ndarray_rand::RandomExt;</span>
+    <span class='doccomment'>/// use ndarray::RcArray;</span>
+    <span class='doccomment'>/// use rand::distributions::Range;</span>
+    <span class='doccomment'>/// use rsml::tree::model::DecisionTree;</span>
+    <span class='doccomment'>/// fn main(){</span>
+    <span class='doccomment'>/// let z = RcArray::random((10,5), Range::new(0.,10.));</span>
     <span class='doccomment'>/// let feature_idx = 4;</span>
     <span class='doccomment'>/// let value = 4.0;</span>
-    <span class='doccomment'>/// let (left, right) = DecisionTree::split_data(&amp;X,&amp;indices, feature_idx, value);</span>
-    <span class='doccomment'>/// assert!(left.iter().all(|&amp;x| X.get((x,feature_idx)).unwrap() &lt;= &amp;value));</span>
-    <span class='doccomment'>/// assert!(right.iter().all(|&amp;x| X.get((x,feature_idx)).unwrap() &gt; &amp;value));</span>
+    <span class='doccomment'>/// let (left, right) = DecisionTree::split(z.column(feature_idx),value);</span>
+    <span class='doccomment'>/// assert!(left.iter().all(|&amp;x| z.get((x,feature_idx)).unwrap() &lt;= &amp;value));</span>
+    <span class='doccomment'>/// assert!(right.iter().all(|&amp;x| z.get((x,feature_idx)).unwrap() &gt; &amp;value))</span>
+    <span class='doccomment'>/// }</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>split_data</span>(<span class='ident'>X</span> : <span class='kw-2'>&amp;</span><span class='ident'>Mat</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>indices</span>: <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>, <span class='ident'>feature_idx</span> : <span class='ident'>usize</span>, <span class='ident'>threshold</span> : <span class='ident'>f64</span>) <span class='op'>-&gt;</span> (<span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,<span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>){
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>split</span>(<span class='ident'>feature</span> : <span class='ident'>Feature</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>threshold</span> : <span class='ident'>f64</span>) <span class='op'>-&gt;</span> (<span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,<span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>){
 
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>a_idx</span> <span class='op'>=</span> <span class='ident'>Vec</span> :: <span class='ident'>new</span>();
         <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>b_idx</span> <span class='op'>=</span> <span class='ident'>Vec</span> :: <span class='ident'>new</span>();
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>x_subset</span> <span class='op'>=</span> <span class='ident'>Vec</span> :: <span class='ident'>new</span>();
 
-        <span class='kw'>for</span> <span class='ident'>row_idx</span> <span class='kw'>in</span> <span class='ident'>indices</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>() {
-            <span class='ident'>x_subset</span>.<span class='ident'>push</span>(<span class='ident'>X</span>[(<span class='ident'>row_idx</span>,<span class='ident'>feature_idx</span>)]);
-        }
 
-        <span class='kw'>for</span> (<span class='ident'>idx</span>, <span class='kw-2'>&amp;</span><span class='ident'>elem</span>) <span class='kw'>in</span> <span class='ident'>x_subset</span>.<span class='ident'>iter</span>().<span class='ident'>enumerate</span>(){
+        <span class='kw'>for</span> (<span class='ident'>idx</span>, <span class='kw-2'>&amp;</span><span class='ident'>elem</span>) <span class='kw'>in</span> <span class='ident'>feature</span>.<span class='ident'>iter</span>().<span class='ident'>enumerate</span>(){
             <span class='kw'>match</span> <span class='ident'>elem</span> {
                 <span class='ident'>x</span> <span class='kw'>if</span> <span class='ident'>x</span> <span class='op'>&lt;=</span> <span class='ident'>threshold</span> <span class='op'>=&gt;</span>{ <span class='ident'>a_idx</span>.<span class='ident'>push</span>(<span class='ident'>idx</span>)}
                 <span class='ident'>x</span> <span class='kw'>if</span> <span class='ident'>x</span> <span class='op'>&gt;</span> <span class='ident'>threshold</span> <span class='op'>=&gt;</span> {<span class='ident'>b_idx</span>.<span class='ident'>push</span>(<span class='ident'>idx</span>)}
@@ -498,7 +509,7 @@
             }
         }
 
-        (<span class='ident'>RcArray</span>::<span class='ident'>from_vec</span>(<span class='ident'>a_idx</span>),<span class='ident'>RcArray</span>::<span class='ident'>from_vec</span>(<span class='ident'>b_idx</span>))
+        (<span class='ident'>a_idx</span>, <span class='ident'>b_idx</span>)
     }
 
     <span class='doccomment'>/// Determine optimal threshold to split data</span>
@@ -511,44 +522,38 @@
     <span class='doccomment'>///</span>
     <span class='doccomment'>/// # Example:</span>
     <span class='doccomment'>/// ```</span>
-    <span class='doccomment'>/// let X = rcarr2(&amp;[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);</span>
+    <span class='doccomment'>/// extern crate ndarray;</span>
+    <span class='doccomment'>/// extern crate rsml;</span>
+    <span class='doccomment'>/// use ndarray :: {rcarr2, RcArray};</span>
+    <span class='doccomment'>/// use rsml::tree::model::*;</span>
+    <span class='doccomment'>/// fn main(){</span>
+    <span class='doccomment'>/// let x = rcarr2(&amp;[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);</span>
     <span class='doccomment'>/// let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);</span>
-    <span class='doccomment'>/// let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);</span>
-    <span class='doccomment'>/// let (threshold, split_impurity) = DecisionTree::calculate_split(&amp;X, 0, &amp;y, &amp;indices);</span>
+    <span class='doccomment'>/// let (threshold, split_impurity) = DecisionTree::find_optimal_split(x.column(0), &amp;y);</span>
     <span class='doccomment'>/// assert!(threshold == -0.5);</span>
     <span class='doccomment'>/// assert!(split_impurity == 0.0);</span>
+    <span class='doccomment'>/// }</span>
     <span class='doccomment'>/// ```</span>
-    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>calculate_split</span>(<span class='ident'>feature</span> : <span class='ident'>Feature</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>y</span> : <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> (<span class='ident'>f64</span>, <span class='ident'>f64</span>) {
-
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>y_subset</span> <span class='op'>=</span> <span class='ident'>Vec</span> :: <span class='ident'>new</span>();
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>x_subset</span> <span class='op'>=</span> <span class='ident'>Vec</span> :: <span class='ident'>new</span>();
-            <span class='kw'>let</span> <span class='ident'>y_all</span> <span class='op'>=</span> <span class='ident'>y</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>().<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;&gt;</span>();
-
-            <span class='kw'>for</span> <span class='ident'>row_idx</span> <span class='kw'>in</span> <span class='ident'>indices</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>() {
-                <span class='ident'>y_subset</span>.<span class='ident'>push</span>(<span class='ident'>y_all</span>[<span class='ident'>row_idx</span>]);
-                <span class='ident'>x_subset</span>.<span class='ident'>push</span>(<span class='ident'>feature</span>[(<span class='ident'>row_idx</span>)]);
-            }
+    <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>find_optimal_split</span>(<span class='ident'>feature</span> : <span class='ident'>Feature</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>target</span> : <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>) <span class='op'>-&gt;</span> (<span class='ident'>f64</span>, <span class='ident'>f64</span>) {
 
 
-            <span class='comment'>// let y_subset_sorted = y_subset.sort_by(|a, b| a.partial_cmp(&amp;b).unwrap());</span>
-            <span class='comment'>// let max_value = y_subset_sorted.last().unwrap();</span>
+
 
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>split_impurity</span> <span class='op'>=</span> <span class='number'>1.0f64</span> <span class='op'>/</span> <span class='number'>0.0f64</span>;
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>threshold</span> <span class='op'>=</span> <span class='number'>0.0</span>;
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>cumulative_y</span> <span class='op'>=</span> <span class='number'>0.0</span>;
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>cumulative_count</span> <span class='op'>=</span> <span class='number'>0.0</span>;
 
-            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>xy_pairs</span> <span class='op'>=</span> <span class='ident'>x_subset</span>.<span class='ident'>iter</span>().<span class='ident'>zip</span>(<span class='ident'>y_subset</span>.<span class='ident'>iter</span>()).<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>();
+            <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>xy_pairs</span> <span class='op'>=</span> <span class='ident'>feature</span>.<span class='ident'>iter</span>().<span class='ident'>zip</span>(<span class='ident'>target</span>.<span class='ident'>iter</span>()).<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>();
             <span class='ident'>xy_pairs</span>.<span class='ident'>sort_by</span>(<span class='op'>|</span><span class='ident'>a</span>, <span class='ident'>b</span><span class='op'>|</span> <span class='ident'>a</span>.<span class='number'>0</span>.<span class='ident'>partial_cmp</span>(<span class='kw-2'>&amp;</span><span class='ident'>b</span>.<span class='number'>0</span>).<span class='ident'>unwrap</span>());
 
             <span class='kw'>for</span> (<span class='kw-2'>&amp;</span><span class='ident'>x</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>) <span class='kw'>in</span> <span class='ident'>xy_pairs</span>{
                 <span class='ident'>cumulative_count</span> <span class='op'>+=</span> <span class='number'>1.0</span>;
                 <span class='ident'>cumulative_y</span> <span class='op'>+=</span> <span class='ident'>y</span>;
 
-                <span class='kw'>let</span> <span class='ident'>p_left</span> <span class='op'>=</span> <span class='ident'>cumulative_y</span> <span class='op'>/</span> <span class='ident'>y_all</span>.<span class='ident'>iter</span>().<span class='ident'>fold</span>(<span class='number'>0.0</span>,<span class='op'>|</span><span class='ident'>a</span>, <span class='kw-2'>&amp;</span><span class='ident'>b</span><span class='op'>|</span> <span class='ident'>a</span> <span class='op'>+</span> <span class='ident'>b</span>) ;
-
+                <span class='kw'>let</span> <span class='ident'>p_left</span> <span class='op'>=</span> <span class='ident'>cumulative_y</span> <span class='op'>/</span> <span class='ident'>target</span>.<span class='ident'>iter</span>().<span class='ident'>fold</span>(<span class='number'>0.0</span>,<span class='op'>|</span><span class='ident'>a</span>, <span class='kw-2'>&amp;</span><span class='ident'>b</span><span class='op'>|</span> <span class='ident'>a</span> <span class='op'>+</span> <span class='ident'>b</span>) ;
                 <span class='kw'>let</span> <span class='ident'>p_right</span> <span class='op'>=</span> <span class='number'>1.0</span> <span class='op'>-</span> <span class='ident'>p_left</span>;
-                <span class='kw'>let</span> <span class='ident'>left_proportion</span> <span class='op'>=</span> <span class='ident'>cumulative_count</span> <span class='op'>/</span> <span class='ident'>y_all</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>f64</span>;
+                <span class='kw'>let</span> <span class='ident'>left_proportion</span> <span class='op'>=</span> <span class='ident'>cumulative_count</span> <span class='op'>/</span> <span class='ident'>target</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>f64</span>;
 
                 <span class='kw'>let</span> <span class='ident'>impurity</span> <span class='op'>=</span> <span class='ident'>DecisionTree</span>::<span class='ident'>gini_impurity</span>(<span class='ident'>left_proportion</span>,
                                                                  <span class='ident'>p_left</span>,
@@ -571,9 +576,13 @@
         <span class='doccomment'>///</span>
         <span class='doccomment'>/// # Example:</span>
         <span class='doccomment'>/// ```</span>
+        <span class='doccomment'>/// extern crate rsml;</span>
+        <span class='doccomment'>/// use rsml::tree::model::DecisionTree;</span>
+        <span class='doccomment'>/// fn main(){</span>
         <span class='doccomment'>/// let impurity = DecisionTree::gini_impurity(0.2, 1.0, 0.5);</span>
         <span class='doccomment'>/// let expected = 0.8 * 0.5;</span>
         <span class='doccomment'>/// assert!(impurity == expected);</span>
+        <span class='doccomment'>/// }</span>
         <span class='doccomment'>/// ```</span>
         <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>gini_impurity</span>(<span class='ident'>left_child_proportion</span>: <span class='ident'>f64</span>,
                                <span class='ident'>left_child_probability</span>: <span class='ident'>f64</span>,
@@ -602,17 +611,18 @@
 
 
     <span class='kw'>pub</span> <span class='kw'>fn</span> <span class='ident'>build_tree</span>(<span class='kw-2'>&amp;</span><span class='kw-2'>mut</span> <span class='self'>self</span>, <span class='ident'>X</span>: <span class='kw-2'>&amp;</span><span class='ident'>Mat</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>, <span class='ident'>y</span>: <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;</span>,
-                 <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span><span class='ident'>Col</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
+                 <span class='ident'>indices</span> : <span class='kw-2'>&amp;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>usize</span><span class='op'>&gt;</span>,
                 <span class='ident'>depth</span>: <span class='ident'>usize</span>
                 ) <span class='op'>-&gt;</span> <span class='ident'>Node</span> {
-        <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>y_subset</span> <span class='op'>=</span> <span class='ident'>Vec</span> :: <span class='ident'>new</span>();
-        <span class='kw'>let</span> <span class='ident'>y_all</span> <span class='op'>=</span> <span class='ident'>y</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>().<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span><span class='ident'>f64</span><span class='op'>&gt;&gt;</span>();
 
-        <span class='kw'>for</span> <span class='ident'>row_idx</span> <span class='kw'>in</span> <span class='ident'>indices</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>() {
-            <span class='ident'>y_subset</span>.<span class='ident'>push</span>(<span class='ident'>y_all</span>[<span class='ident'>row_idx</span>]);
-        }
+        <span class='kw'>let</span> <span class='ident'>x_subset</span> <span class='op'>=</span> <span class='ident'>indices</span>.<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='kw-2'>&amp;</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>X</span>.<span class='ident'>row</span>(<span class='ident'>x</span>).<span class='ident'>into_shape</span>((<span class='number'>1</span>,<span class='ident'>X</span>.<span class='ident'>shape</span>()[<span class='number'>1</span>])).<span class='ident'>ok</span>().<span class='ident'>unwrap</span>()).<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>();
+        <span class='kw'>let</span> <span class='ident'>x_subset</span> <span class='op'>=</span> <span class='ident'>stack</span>(<span class='ident'>Axis</span>(<span class='number'>0</span>), <span class='ident'>x_subset</span>.<span class='ident'>as_slice</span>()).<span class='ident'>ok</span>().<span class='ident'>unwrap</span>();
+
+        <span class='kw'>let</span> <span class='ident'>y_subset</span> <span class='op'>=</span> <span class='ident'>RcArray</span>::<span class='ident'>from_vec</span>(<span class='ident'>indices</span>.<span class='ident'>iter</span>().<span class='ident'>cloned</span>().<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>().<span class='ident'>iter</span>().<span class='ident'>map</span>(<span class='op'>|</span><span class='kw-2'>&amp;</span><span class='ident'>x</span><span class='op'>|</span> <span class='ident'>y</span>[<span class='ident'>x</span>]).<span class='ident'>collect</span>::<span class='op'>&lt;</span><span class='ident'>Vec</span><span class='op'>&lt;</span>_<span class='op'>&gt;&gt;</span>());
+
+
         <span class='kw'>let</span> <span class='ident'>num_plus</span> <span class='op'>=</span> <span class='ident'>y_subset</span>.<span class='ident'>iter</span>().<span class='ident'>fold</span>(<span class='number'>0.0</span>,<span class='op'>|</span><span class='ident'>a</span>, <span class='kw-2'>&amp;</span><span class='ident'>b</span><span class='op'>|</span> <span class='ident'>a</span> <span class='op'>+</span> <span class='ident'>b</span>);
-        <span class='kw'>let</span> <span class='ident'>probability</span> <span class='op'>=</span> <span class='ident'>num_plus</span> <span class='kw'>as</span> <span class='ident'>f64</span> <span class='op'>/</span> <span class='ident'>y</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>f64</span>;
+        <span class='kw'>let</span> <span class='ident'>probability</span> <span class='op'>=</span> <span class='ident'>num_plus</span> <span class='kw'>as</span> <span class='ident'>f64</span> <span class='op'>/</span> <span class='ident'>indices</span>.<span class='ident'>len</span>() <span class='kw'>as</span> <span class='ident'>f64</span>;
 
 
         <span class='kw'>if</span> <span class='ident'>probability</span> <span class='op'>==</span> <span class='number'>0.0</span>
@@ -625,10 +635,10 @@
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>best_feature_idx</span> <span class='op'>=</span> <span class='number'>0</span>;
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>best_feature_threshold</span> <span class='op'>=</span> <span class='number'>0.0</span> <span class='kw'>as</span> <span class='ident'>f64</span>;
             <span class='kw'>let</span> <span class='kw-2'>mut</span> <span class='ident'>best_impurity</span> <span class='op'>=</span> <span class='number'>1.0f64</span> <span class='op'>/</span> <span class='number'>0.0f64</span>;
-            <span class='kw'>for</span> (<span class='ident'>feature_idx</span>,<span class='ident'>feature</span>) <span class='kw'>in</span> <span class='ident'>X</span>.<span class='ident'>outer_iter</span>().<span class='ident'>enumerate</span>(){
+            <span class='kw'>for</span> (<span class='ident'>feature_idx</span>,<span class='ident'>feature</span>) <span class='kw'>in</span> <span class='ident'>x_subset</span>.<span class='ident'>outer_iter</span>().<span class='ident'>enumerate</span>(){
+                <span class='kw'>let</span> (<span class='ident'>threshold</span>, <span class='ident'>impurity</span>) <span class='op'>=</span> <span class='ident'>DecisionTree</span>::<span class='ident'>find_optimal_split</span>(<span class='ident'>feature</span>, <span class='kw-2'>&amp;</span><span class='ident'>y_subset</span>);
 
-                <span class='kw'>let</span> (<span class='ident'>threshold</span>, <span class='ident'>impurity</span>) <span class='op'>=</span> <span class='ident'>DecisionTree</span>::<span class='ident'>calculate_split</span>(<span class='ident'>feature</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>, <span class='ident'>indices</span>);
-                <span class='kw'>if</span> <span class='ident'>impurity</span> <span class='op'>&lt;</span> <span class='ident'>best_impurity</span> {
+                <span class='kw'>if</span> <span class='ident'>impurity</span> <span class='op'>&lt;</span> <span class='ident'>best_impurity</span>  {
                     <span class='ident'>best_feature_idx</span> <span class='op'>=</span> <span class='ident'>feature_idx</span>;
                     <span class='ident'>best_feature_threshold</span> <span class='op'>=</span> <span class='ident'>threshold</span>;
                     <span class='ident'>best_impurity</span> <span class='op'>=</span> <span class='ident'>impurity</span>;
@@ -637,13 +647,14 @@
 
         }
             <span class='self'>self</span>.<span class='ident'>used_features</span>.<span class='ident'>push</span>(<span class='ident'>best_feature_idx</span>);
-            <span class='kw'>let</span> (<span class='ident'>left_data_idx</span>, <span class='ident'>right_data_idx</span>) <span class='op'>=</span> <span class='ident'>DecisionTree</span>::<span class='ident'>split_data</span>(<span class='ident'>X</span>, <span class='ident'>indices</span>, <span class='ident'>best_feature_idx</span>, <span class='ident'>best_feature_threshold</span>);
+            <span class='kw'>let</span> <span class='ident'>best_feature</span> <span class='op'>=</span> <span class='ident'>X</span>.<span class='ident'>column</span>(<span class='ident'>best_feature_idx</span>);
+            <span class='kw'>let</span> (<span class='ident'>left_data_idx</span>, <span class='ident'>right_data_idx</span>) <span class='op'>=</span> <span class='ident'>DecisionTree</span>::<span class='ident'>split</span>(<span class='ident'>best_feature</span>, <span class='ident'>best_feature_threshold</span>);
             <span class='kw'>if</span> <span class='ident'>left_data_idx</span>.<span class='ident'>len</span>() <span class='op'>&gt;</span> <span class='number'>0</span> <span class='op'>&amp;&amp;</span> <span class='ident'>right_data_idx</span>.<span class='ident'>len</span>() <span class='op'>&gt;</span> <span class='number'>0</span> {
 
                     <span class='kw'>let</span> <span class='ident'>left</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>build_tree</span>(<span class='ident'>X</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>,
                                              <span class='kw-2'>&amp;</span><span class='ident'>left_data_idx</span>,
                                              <span class='ident'>depth</span> <span class='op'>+</span> <span class='number'>1</span>);
-                     <span class='kw'>let</span> <span class='ident'>right</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>build_tree</span>(<span class='ident'>X</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>,
+                    <span class='kw'>let</span> <span class='ident'>right</span> <span class='op'>=</span> <span class='self'>self</span>.<span class='ident'>build_tree</span>(<span class='ident'>X</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>,
                                               <span class='kw-2'>&amp;</span><span class='ident'>right_data_idx</span>,
                                                <span class='ident'>depth</span> <span class='op'>+</span> <span class='number'>1</span>);
                     <span class='kw'>return</span> <span class='ident'>Node</span>::<span class='ident'>Internal</span> {<span class='ident'>feature</span>: <span class='ident'>best_feature_idx</span>,
@@ -697,7 +708,7 @@
         <span class='kw'>let</span> <span class='ident'>n_classes</span> <span class='op'>=</span> <span class='ident'>classes</span>.<span class='ident'>shape</span>()[<span class='number'>0</span>];
 
 
-        <span class='kw'>let</span> <span class='ident'>max_depth</span> <span class='op'>=</span> <span class='number'>500</span>;
+        <span class='kw'>let</span> <span class='ident'>max_depth</span> <span class='op'>=</span> <span class='number'>15</span>;
 
         <span class='kw'>let</span> <span class='ident'>max_leaf_nodes</span> <span class='op'>=</span> <span class='number'>1</span>;
         <span class='kw'>let</span> <span class='ident'>min_samples_leaf</span> <span class='op'>=</span> <span class='number'>1</span>;
@@ -713,8 +724,7 @@
         <span class='self'>self</span>.<span class='ident'>classes</span><span class='op'>=</span><span class='ident'>classes</span>;
         <span class='self'>self</span>.<span class='ident'>n_classes</span><span class='op'>=</span><span class='ident'>n_classes</span>;
 
-        <span class='self'>self</span>.<span class='ident'>root</span><span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>build_tree</span>(<span class='kw-2'>&amp;</span><span class='ident'>X</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>, <span class='kw-2'>&amp;</span><span class='ident'>RcArray</span>::<span class='ident'>from_vec</span>((<span class='number'>0</span>..<span class='ident'>X</span>.<span class='ident'>shape</span>()[<span class='number'>0</span>]).<span class='ident'>collect</span>()), <span class='number'>1</span>));
-
+        <span class='self'>self</span>.<span class='ident'>root</span><span class='op'>=</span> <span class='prelude-val'>Some</span>(<span class='self'>self</span>.<span class='ident'>build_tree</span>(<span class='kw-2'>&amp;</span><span class='ident'>X</span>, <span class='kw-2'>&amp;</span><span class='ident'>y</span>, <span class='kw-2'>&amp;</span>(<span class='number'>0</span>..<span class='ident'>X</span>.<span class='ident'>shape</span>()[<span class='number'>0</span>]).<span class='ident'>collect</span>(), <span class='number'>1</span>));
 }
 
 
