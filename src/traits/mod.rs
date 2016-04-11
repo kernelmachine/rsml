@@ -19,5 +19,5 @@ pub trait SupervisedLearning<A,B> {
     /// # Arguments:
     ///
     /// * `X` - test data
-    fn predict(&mut self, X :A)-> Result<Col<f64>, &'static str>;
+    fn predict(&mut self, X :&A)-> Result<Col<f64>, &'static str>;
 }

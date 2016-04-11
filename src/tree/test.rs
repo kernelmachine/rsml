@@ -1,11 +1,16 @@
 #![allow(non_snake_case)]
 #[cfg(test)]
+
 mod tests {
+    extern crate test;
     use tree::model::*;
     use ndarray::{RcArray, rcarr2};
     use ndarray_rand::RandomExt;
     use traits::SupervisedLearning;
     use rand::distributions::Range;
+    use test::Bencher;
+    use rand::{thread_rng, Rng};
+
 
     #[test]
      fn test_gini_impurity() {
@@ -66,10 +71,30 @@ mod tests {
 
         dt.fit(&X, &y);
 
-        let pred = dt.predict(X).ok().unwrap();
+        let pred = dt.predict(&X).ok().unwrap();
 
         assert!( y.all_close(&pred, 1e-8));
 
+    }
+
+    #[bench]
+    fn bench_wide(b: &mut Bencher) {
+
+        let rows = 50;
+        let cols = 50;
+
+        let X = RcArray::random((rows,cols), Range::new(0.,10.));
+        let mut rng = thread_rng();
+        let y = RcArray::from_vec((0..rows)
+                                .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
+                                .collect::<Vec<_>>());
+
+        let mut dt = DecisionTree::new();
+
+
+        b.iter(|| {
+            dt.fit(&X, &y);
+        });
     }
 
 }

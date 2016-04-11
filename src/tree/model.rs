@@ -8,6 +8,7 @@ use std::cmp;
 use rand::{thread_rng, Rng};
 use traits::SupervisedLearning;
 
+
 /// Rectangular matrix.
 pub type Mat<A> = RcArray<A, (Ix, Ix)>;
 
@@ -19,7 +20,7 @@ pub type Col<A> = RcArray<A, Ix>;
 
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// Node represents a node of the decision tree: Internal or Leaf Node.
 pub enum Node {
     Internal {
@@ -36,7 +37,7 @@ pub enum Node {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 /// DecisionTree represents the full decision tree model
 
 pub struct DecisionTree{
@@ -105,7 +106,6 @@ impl DecisionTree {
         let mut a_idx = Vec :: new();
         let mut b_idx = Vec :: new();
 
-
         for (idx, &elem) in feature.iter().enumerate(){
             match elem {
                 x if x <= threshold =>{ a_idx.push(idx)}
@@ -140,9 +140,6 @@ impl DecisionTree {
     /// }
     /// ```
     pub fn find_optimal_split(feature : Feature<f64>, target : &Col<f64>) -> (f64, f64) {
-
-
-
 
             let mut split_impurity = 1.0f64 / 0.0f64;
             let mut threshold = 0.0;
@@ -333,7 +330,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 }
 
 
-    fn predict(&mut self, X : Mat<f64>) -> Result<Col<f64>, &'static str>{
+    fn predict(&mut self, X : &Mat<f64>) -> Result<Col<f64>, &'static str>{
         match self.root {
             Some(ref node) => {
                 let mut data = Vec::with_capacity(X.shape()[0]);
