@@ -26,7 +26,6 @@ mod tests {
     #[test]
     fn test_split(){
         let X = RcArray::random((10,5), Range::new(0.,10.));
-        let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);
         let feature_idx = 4;
         let value = 4.0;
         let (left, right) = DecisionTree::split(X.column(feature_idx),value);
@@ -40,7 +39,6 @@ mod tests {
         let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
 
         let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-        let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
 
         assert!(threshold == -0.5);
@@ -52,7 +50,6 @@ mod tests {
     fn test_calculate_split_1(){
         let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
         let y = RcArray::from_vec(vec![1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
-        let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
         assert!(threshold == 0.0);
         assert!(split_impurity == 0.0);
@@ -62,15 +59,16 @@ mod tests {
     #[test]
     fn test_tree_building() {
 
-        let X = rcarr2(&[[0.0, 1.0], [1.0,0.0] ]);
+        let X = rcarr2(&[[0.0, 1.0], [1.0,0.0], [1.0,0.0], [1.0,0.0], [1.0,0.0], [1.0,0.0], [1.0,0.0],[1.0,0.0]]);
 
-        let y = RcArray::from_vec(vec![0.0, 1.0]);
+        let y = RcArray::from_vec(vec![0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]);
 
         let mut dt = DecisionTree::new();
 
         dt.fit(&X, &y);
 
         let pred = dt.predict(X).ok().unwrap();
+        println!("{:?}", pred );
         assert!( y.all_close(&pred, 0.5));
 
     }

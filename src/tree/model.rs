@@ -206,8 +206,8 @@ impl DecisionTree {
                 depth: usize
                 ) -> Node {
 
-        let x_subset = indices.iter().map(|&x| X.row(x).into_shape((X.shape()[1],1)).ok().unwrap()).collect::<Vec<_>>();
-        let x_subset = stack(Axis(1), x_subset.as_slice()).ok().unwrap();
+        let x_subset = indices.iter().map(|&x| X.row(x).into_shape((1,X.shape()[1])).ok().unwrap()).collect::<Vec<_>>();
+        let x_subset = stack(Axis(0), x_subset.as_slice()).ok().unwrap();
 
         let y_subset = RcArray::from_vec(indices.iter().cloned().collect::<Vec<_>>().iter().map(|&x| y[x]).collect::<Vec<_>>());
 
@@ -317,7 +317,6 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         self.n_classes=n_classes;
 
         self.root= Some(self.build_tree(&X, &y, &(0..X.shape()[0]).collect(), 1));
-        println!("{:?}", self.root );
 }
 
 
