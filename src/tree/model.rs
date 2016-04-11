@@ -87,13 +87,17 @@ impl DecisionTree {
     /// extern crate rand;
     /// extern crate ndarray_rand;
     /// use ndarray_rand::RandomExt;
-    /// let X = ndarray::RcArray::random((10,5), rand::distributions::Range::new(0.,10.));
-    /// let indices = ndarray::RcArray::from_vec(vec![0,1,2,3,4,5,6,7,8,9]);
+    /// use ndarray::RcArray;
+    /// use rand::distributions::Range;
+    /// use rsml::tree::model::DecisionTree;
+    /// fn main(){
+    /// let z = RcArray::random((10,5), Range::new(0.,10.));
     /// let feature_idx = 4;
     /// let value = 4.0;
-    /// let (left, right) = rsml::tree::model::DecisionTree::split(&X,&indices, feature_idx, value);
-    /// assert!(left.iter().all(|&x| X.get((x,feature_idx)).unwrap() <= &value));
-    /// assert!(right.iter().all(|&x| X.get((x,feature_idx)).unwrap() > &value));
+    /// let (left, right) = DecisionTree::split(z.column(feature_idx),value);
+    /// assert!(left.iter().all(|&x| z.get((x,feature_idx)).unwrap() <= &value));
+    /// assert!(right.iter().all(|&x| z.get((x,feature_idx)).unwrap() > &value))
+    /// }
     /// ```
     pub fn split(feature : Feature<f64>, threshold : f64) -> (Vec<usize>,Vec<usize>){
 
@@ -122,12 +126,17 @@ impl DecisionTree {
     ///
     /// # Example:
     /// ```
-    /// let X = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
+    /// extern crate ndarray;
+    /// extern crate rsml;
+    /// use ndarray :: {rcarr2, RcArray};
+    /// use rsml::tree::model::*;
+    /// fn main(){
+    /// let x = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
     /// let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
-    /// let indices = RcArray::from_vec(vec![0,1,2,3,4,5,6]);
-    /// let (threshold, split_impurity) = DecisionTree::calculate_split(&X, 0, &y, &indices);
+    /// let (threshold, split_impurity) = DecisionTree::find_optimal_split(x.column(0), &y);
     /// assert!(threshold == -0.5);
     /// assert!(split_impurity == 0.0);
+    /// }
     /// ```
     pub fn find_optimal_split(feature : Feature<f64>, target : &Col<f64>) -> (f64, f64) {
 
@@ -171,9 +180,13 @@ impl DecisionTree {
         ///
         /// # Example:
         /// ```
+        /// extern crate rsml;
+        /// use rsml::tree::model::DecisionTree;
+        /// fn main(){
         /// let impurity = DecisionTree::gini_impurity(0.2, 1.0, 0.5);
         /// let expected = 0.8 * 0.5;
         /// assert!(impurity == expected);
+        /// }
         /// ```
         pub fn gini_impurity(left_child_proportion: f64,
                                left_child_probability: f64,

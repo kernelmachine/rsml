@@ -66,10 +66,9 @@ mod tests {
 
         dt.fit(&X, &y);
 
-        let pred = dt.predict(rcarr2(&[[0.5, 0.0]])).ok().unwrap();
-        println!("{:?}", pred );
-        // println!("{:?}", dt.root );
-        assert!( y.all_close(&pred, 0.5));
+        let pred = dt.predict(X).ok().unwrap();
+
+        assert!( y.all_close(&pred, 1e-8));
 
     }
 
