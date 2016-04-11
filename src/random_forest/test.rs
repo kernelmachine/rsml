@@ -3,7 +3,6 @@
 mod tests {
     extern crate test;
     use random_forest::model::RandomForest;
-    use tree::model::*;
     use ndarray::{RcArray, rcarr2};
     use ndarray_rand::RandomExt;
     use traits::SupervisedLearning;
@@ -36,7 +35,7 @@ mod tests {
         let rows = 5;
         let cols = 10;
 
-        let X = RcArray::random((rows,cols), Range::new(0.,10.));
+        let x = RcArray::random((rows,cols), Range::new(0.,10.));
         let mut rng = thread_rng();
         let y = RcArray::from_vec((0..rows)
                                 .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
@@ -46,7 +45,7 @@ mod tests {
 
 
         b.iter(|| {
-            rf.fit(&X, &y);
+            rf.fit(&x, &y);
         });
     }
 }

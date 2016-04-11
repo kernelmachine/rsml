@@ -13,8 +13,8 @@ mod tests {
 
     #[test]
      fn test_noncontig_2d_slice() {
-        let X = rcarr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
-        let s = noncontig_2d_slice(&X,&vec![1,3,5]);
+        let x = rcarr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
+        let s = noncontig_2d_slice(&x,&vec![1,3,5]);
         let target = rcarr2(&[[1.0,0.0],[1.0,0.0],[0.0, 1.0]]);
         assert!(s.all_close(&target,1e-8))
         }
