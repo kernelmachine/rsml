@@ -11,6 +11,7 @@ use traits::SupervisedLearning;
 /// Rectangular matrix.
 pub type Mat<A> = RcArray<A, (Ix, Ix)>;
 
+/// Feature view
 pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
 
 /// Col matrix.
