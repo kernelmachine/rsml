@@ -78,7 +78,7 @@ mod tests {
     }
 
     #[bench]
-    fn bench_wide(b: &mut Bencher) {
+    fn bench_tree(b: &mut Bencher) {
 
         let rows = 50;
         let cols = 50;
