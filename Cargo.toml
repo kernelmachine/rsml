@@ -9,3 +9,4 @@ ndarray-rand = "*"
 
 typenum = "*"
 rand="*"
+rayon="*"

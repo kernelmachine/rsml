@@ -8,7 +8,6 @@ extern crate rand;
 extern crate ndarray_rand;
 extern crate test;
 
-
 pub mod tree;
 pub mod traits;
 pub mod random_forest;

@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 #[cfg(test)]
 
 mod tests {
@@ -16,22 +15,23 @@ mod tests {
     #[test]
     fn test_forest_building() {
 
-        let X = rcarr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
+        let train = rcarr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
 
-        let y = RcArray::from_vec(vec![1.0, 0.0,0.0,0.0,0.0,1.0,1.0]);
+        let target = RcArray::from_vec(vec![1.0, 0.0,0.0,0.0,0.0,1.0,1.0]);
 
         let mut rf = RandomForest :: new(5);
 
-        rf.fit(&X, &y);
+        rf.fit(&train, &target);
 
-        let pred = rf.predict(&X).ok().unwrap();
-        assert!( y.all_close(&pred,0.1));
+        let pred = rf.predict(&train).ok().unwrap();
+
+        assert!( target.all_close(&pred,0.1));
 
     }
 
 
     #[bench]
-    fn bench_wide(b: &mut Bencher) {
+    fn bench_rf(b: &mut Bencher) {
 
         let rows = 5;
         let cols = 10;

@@ -1,7 +1,5 @@
-#[allow(unused_imports)]
-#[allow(dead_code)]
 #[allow(non_snake_case)]
-use ndarray::{RcArray,Ix, Axis, ArrayView, ViewRepr, arr2, stack};
+use ndarray::{RcArray,Ix, Axis, ArrayView, stack};
 use rand::distributions::{IndependentSample, Range};
 
 use rand::StdRng;
@@ -27,9 +25,9 @@ pub struct RandomForest {
 impl RandomForest {
 
     pub fn new(n_estimators : usize) -> RandomForest {
-        let trees = vec![DecisionTree::new(); n_estimators];
+
         RandomForest {
-            trees :  trees
+            trees :  vec![DecisionTree::new(); n_estimators],
         }
     }
 
@@ -44,29 +42,24 @@ impl RandomForest {
 
 
 impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
-    fn fit(&mut self, X: &Mat<f64>, y: &Col<f64>) {
-
+    fn fit(&mut self, train: &Mat<f64>, target: &Col<f64>) {
 
         for tree in self.trees.iter_mut() {
-            let indices = RandomForest::bootstrap_indices(X.rows());
-            let x_subset = indices.iter().map(|&x| X.row(x).into_shape((1,X.shape()[1])).ok().unwrap()).collect::<Vec<_>>();
-            let x_subset = stack(Axis(0), x_subset.as_slice()).ok().unwrap();
-
-            let y_subset = RcArray::from_vec(indices.iter().cloned().collect::<Vec<_>>().iter().map(|&x| y[x]).collect::<Vec<_>>());
-
-            tree.fit(&x_subset.to_shared(), &y_subset);
+            let indices = RandomForest::bootstrap_indices(train.rows());
+            let train_subset = indices.iter().map(|&x| train.row(x).into_shape((1,train.shape()[1])).ok().unwrap()).collect::<Vec<_>>();
+            let train_subset = stack(Axis(0), train_subset.as_slice()).ok().unwrap();
+            let target_subset = RcArray::from_vec(indices.iter().cloned().collect::<Vec<_>>().iter().map(|&x| target[x]).collect::<Vec<_>>());
+            tree.fit(&train_subset.to_shared(), &target_subset);
         }
-
-
+        
     }
 
-    fn predict(&mut self, X: &Mat<f64>) -> Result<Col<f64>, &'static str> {
+    fn predict(&mut self, test: &Mat<f64>) -> Result<Col<f64>, &'static str> {
 
-        let mut df = RcArray::zeros(X.shape()[0]);
-
+        let mut df = RcArray::zeros(test.shape()[0]);
 
         for mut tree in self.trees.iter().cloned() {
-            df = df + tree.predict(X).ok().unwrap();
+            df = df + tree.predict(test).ok().unwrap();
         }
 
         df = df / (self.trees.len() as f64);
