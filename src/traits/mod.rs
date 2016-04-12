@@ -1,10 +1,10 @@
-use ndarray::{RcArray,Ix};
+use ndarray::{OwnedArray,Ix};
 
 
 /// Rectangular matrix.
-pub type Mat<A> = RcArray<A, (Ix, Ix)>;
+pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 /// Col matrix.
-pub type Col<A> = RcArray<A, Ix>;
+pub type Col<A> = OwnedArray<A, Ix>;
 
 /// Trait for supervised learning.
 pub trait SupervisedLearning<A,B> {
@@ -19,5 +19,5 @@ pub trait SupervisedLearning<A,B> {
     /// # Arguments:
     ///
     /// * `X` - test data
-    fn predict(&mut self, X :&A)-> Result<Col<f64>, &'static str>;
+    fn predict(&self, X :&A)-> Result<Col<f64>, &'static str>;
 }

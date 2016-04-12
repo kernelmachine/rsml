@@ -1,15 +1,15 @@
 
-use ndarray::{RcArray,Ix, Axis, ArrayView, stack};
+use ndarray::{OwnedArray,Ix, Axis, ArrayView, stack};
 
 
 /// Rectangular matrix.
-pub type Mat<A> = RcArray<A, (Ix, Ix)>;
+pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 
 /// Feature view
 pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
 
 /// Col matrix.
-pub type Col<A> = RcArray<A, Ix>;
+pub type Col<A> = OwnedArray<A, Ix>;
 
 
 
@@ -25,17 +25,17 @@ pub type Col<A> = RcArray<A, Ix>;
 /// extern crate rsml;
 /// extern crate ndarray;
 /// use rsml::util::util::*;
-/// use ndarray::RcArray;
+/// use ndarray::OwnedArray;
 /// fn main(){
-/// let y = RcArray::from_vec(vec![1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]);
+/// let y = OwnedArray::from_vec(vec![1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]);
 /// let s = noncontig_1d_slice(&y,&vec![0,2,4,6]);
-/// let target = RcArray::from_vec(vec![1.0, 1.0, 1.0, 1.0]);
+/// let target = OwnedArray::from_vec(vec![1.0, 1.0, 1.0, 1.0]);
 /// assert!(s.all_close(&target,1e-8))
 /// }
 /// ```
 
 pub fn noncontig_1d_slice(mat : &Col<f64>, indices : &Vec<usize>) -> Col<f64>{
-    RcArray::from_vec(indices
+    OwnedArray::from_vec(indices
                         .iter().cloned().collect::<Vec<_>>()
                         .iter().map(|&x| mat[x]).collect::<Vec<_>>())
 
@@ -52,11 +52,11 @@ pub fn noncontig_1d_slice(mat : &Col<f64>, indices : &Vec<usize>) -> Col<f64>{
 /// extern crate rsml;
 /// extern crate ndarray;
 /// use rsml::util::util::*;
-/// use ndarray::rcarr2;
+/// use ndarray::arr2;
 /// fn main(){
-/// let x = rcarr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
+/// let x = arr2(&[[0.0, 1.0], [1.0,0.0],[1.0,0.0],[1.0,0.0],[1.0,0.0],[0.0, 1.0],[0.0, 1.0]]);
 /// let s = noncontig_2d_slice(&x,&vec![1,3,5]);
-/// let target = rcarr2(&[[1.0,0.0],[1.0,0.0],[0.0, 1.0]]);
+/// let target = arr2(&[[1.0,0.0],[1.0,0.0],[0.0, 1.0]]);
 /// assert!(s.all_close(&target,1e-8))
 /// }
 /// ```
@@ -64,5 +64,5 @@ pub fn noncontig_2d_slice(mat : &Mat<f64>, indices : &Vec<usize>)  -> Mat<f64> {
     let mat = indices.iter()
                         .map(|&x| mat.row(x).into_shape((1,mat.shape()[1]))
                         .ok().unwrap()).collect::<Vec<_>>();
-    stack(Axis(0), mat.as_slice()).ok().unwrap().to_shared()
+    stack(Axis(0), mat.as_slice()).ok().unwrap()
 }

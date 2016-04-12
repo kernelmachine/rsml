@@ -7,6 +7,7 @@ extern crate typenum;
 extern crate rand;
 extern crate ndarray_rand;
 extern crate test;
+extern crate rayon;
 
 pub mod tree;
 pub mod traits;

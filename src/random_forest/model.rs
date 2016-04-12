@@ -1,14 +1,15 @@
 #[allow(non_snake_case)]
-use ndarray::{RcArray,Ix, ArrayView};
+use ndarray::{Ix, ArrayView, OwnedArray };
 use rand::distributions::{IndependentSample, Range};
 
 use rand::StdRng;
 use traits::SupervisedLearning;
 use tree::model::DecisionTree;
 use util::util::{noncontig_1d_slice, noncontig_2d_slice};
+use rayon::prelude::*;
 
 /// Rectangular matrix.
-pub type Mat<A> = RcArray<A, (Ix, Ix)>;
+pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 
 /// Feature view
 pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
@@ -18,7 +19,7 @@ pub type Sample<'a,A> = ArrayView<'a,A, Ix>;
 
 
 /// Col matrix.
-pub type Col<A> = RcArray<A, Ix>;
+pub type Col<A> = OwnedArray<A, Ix>;
 
 
 
@@ -63,31 +64,31 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
 
             // get random set of indices
             let indices = RandomForest::bootstrap(train.rows());
-
+            // println!("{:?}", indices);
             // sample data
-            let train_subset = noncontig_2d_slice(&train,&indices);
-            let target_subset = noncontig_1d_slice(&target, &indices);
+            let train_subset = noncontig_2d_slice(train,&indices);
+            let target_subset = noncontig_1d_slice(target, &indices);
 
             // train decision tree
-            tree.fit(&train_subset.to_shared(), &target_subset.to_shared());
+            tree.fit(&train_subset, &target_subset);
 
         }
 
     }
 
-    fn predict(&mut self, test: &Mat<f64>) -> Result<Col<f64>, &'static str> {
+    fn predict(&self, test: &Mat<f64>) -> Result<Col<f64>, &'static str> {
         // prediction in a random forest is just taking the average of the output of a set of
         // decision trees trained on random subsets of the data.
 
-        let mut df = RcArray::zeros(test.shape()[0]);
 
-        for mut tree in self.trees.iter().cloned() {
+        let mut df = OwnedArray::zeros(test.shape()[0]);
+        for tree in self.trees.iter().cloned() {
             df = df + tree.predict(test).ok().unwrap();
         }
 
         df = df / (self.trees.len() as f64);
-
         Ok(df)
+
 
     }
 }

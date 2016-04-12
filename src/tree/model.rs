@@ -1,10 +1,10 @@
 
-use ndarray::{RcArray,Ix, ArrayView};
+use ndarray::{Ix, ArrayView,OwnedArray};
 use traits::SupervisedLearning;
 use util::util::{noncontig_2d_slice, noncontig_1d_slice};
 
 /// Rectangular matrix.
-pub type Mat<A> = RcArray<A, (Ix, Ix)>;
+pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 
 /// Feature view
 pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
@@ -14,7 +14,7 @@ pub type Sample<'a,A> = ArrayView<'a,A, Ix>;
 
 
 /// Col matrix.
-pub type Col<A> = RcArray<A, Ix>;
+pub type Col<A> = OwnedArray<A, Ix>;
 
 
 
@@ -48,7 +48,7 @@ pub struct DecisionTree{
     /// number of outputs
     pub n_outputs : usize,
     /// array of classes
-    pub classes : Col<f64>,
+    pub classes : Vec<f64>,
     /// number of classes
     pub n_classes : usize,
     /// root node of tree
@@ -64,7 +64,7 @@ impl DecisionTree {
             min_samples_split : 0,
             n_features : 0,
             n_outputs : 0,
-            classes : RcArray::from_vec(vec![0.0]),
+            classes :vec![0.0],
             n_classes : 0,
             root : None
         }
@@ -85,11 +85,11 @@ impl DecisionTree {
     /// extern crate rand;
     /// extern crate ndarray_rand;
     /// use ndarray_rand::RandomExt;
-    /// use ndarray::RcArray;
+    /// use ndarray::OwnedArray;
     /// use rand::distributions::Range;
     /// use rsml::tree::model::DecisionTree;
     /// fn main(){
-    ///     let z = RcArray::random((10,5), Range::new(0.,10.));
+    ///     let z = OwnedArray::random((10,5), Range::new(0.,10.));
     ///     let feature_idx = 4;
     ///     let value = 4.0;
     ///     let (left, right) = DecisionTree::split(z.column(feature_idx),value);
@@ -125,11 +125,11 @@ impl DecisionTree {
     /// ```
     /// extern crate ndarray;
     /// extern crate rsml;
-    /// use ndarray :: {rcarr2, RcArray};
+    /// use ndarray :: {arr2, OwnedArray};
     /// use rsml::tree::model::*;
     /// fn main(){
-    ///     let x = rcarr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
-    ///     let y = RcArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    ///     let x = arr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
+    ///     let y = OwnedArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     ///     let (threshold, split_impurity) = DecisionTree::find_optimal_split(x.column(0), &y);
     ///     assert!(threshold == -0.5);
     ///     assert!(split_impurity == 0.0);
@@ -253,11 +253,11 @@ impl DecisionTree {
                 let right_target = noncontig_1d_slice(target, &right_data_idx);
 
                 // now we recursively build further nodes on left/right children.
-                let left = self.build_tree(&left_train.to_shared(),
-                                            &left_target.to_shared(),
+                let left = self.build_tree(&left_train,
+                                            &left_target,
                                             depth + 1);
-                let right = self.build_tree(&right_train.to_shared(),
-                                            &right_target.to_shared(),
+                let right = self.build_tree(&right_train,
+                                            &right_target,
                                             depth + 1);
                 return Node::Internal {feature: best_feature_idx,
                                        threshold: best_feature_threshold,
@@ -307,9 +307,9 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
         target_cloned.sort_by(|a, b| a.partial_cmp(&b).unwrap());
         target_cloned.dedup();
 
-        let classes = RcArray::from_vec(target_cloned);
+        let classes = target_cloned;
 
-        let n_classes = classes.shape()[0];
+        let n_classes = classes.len();
 
         // you can probably play around with these values.
         let max_depth = 15;
@@ -326,17 +326,19 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
 }
 
 
-    fn predict(&mut self, test : &Mat<f64>) -> Result<Col<f64>, &'static str>{
+    fn predict(&self, test : &Mat<f64>) -> Result<Col<f64>, &'static str>{
+
         match self.root {
             Some(ref node) => {
                 // query tree on each row of test data
                 let data = test
                             .inner_iter()
                             .map(|x| self.query_tree(&node, &x)).collect::<Vec<_>>();
-                Ok(RcArray::from_vec(data))
+                Ok(OwnedArray::from_vec(data))
             }
             None => Err("Fit your tree to some data first!"),
         }
+            
     }
 
 
