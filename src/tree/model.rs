@@ -244,9 +244,8 @@ impl DecisionTree {
                 right_data_idx) = DecisionTree::split(best_feature, best_feature_threshold);
         if left_data_idx.len() > 0 && right_data_idx.len() > 0 {
                 // ndarray does not have support for noncontinguous slicing of matrices, so I
-                // had to hack my own one. Apologies in advance, it's kinda messy. but it works!
-                // Get the corresponding training and testing data for the left and right child
-                //nodes.
+                // had to hack my own one. Get the corresponding training and testing data for 
+                // the left and right child nodes.
                 let left_train = noncontig_2d_slice(train, &left_data_idx);
                 let left_target = noncontig_1d_slice(target, &left_data_idx);
                 let right_train = noncontig_2d_slice(train, &right_data_idx);
