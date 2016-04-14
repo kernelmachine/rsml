@@ -99,18 +99,18 @@ impl DecisionTree {
     /// ```
     pub fn split(feature : Feature<f64>, threshold : f64) -> (Vec<usize>,Vec<usize>){
 
-        let mut a_idx = Vec :: new();
-        let mut b_idx = Vec :: new();
+        let mut right_idx = Vec :: new();
+        let mut left_idx = Vec :: new();
 
         for (idx, &elem) in feature.iter().enumerate(){
             match elem {
-                x if x <= threshold =>{ a_idx.push(idx)}
-                x if x > threshold => {b_idx.push(idx)}
+                x if x <= threshold =>{ right_idx.push(idx) }
+                x if x > threshold => { left_idx.push(idx) }
                 _ => continue
             }
         }
 
-        (a_idx, b_idx)
+        (right_idx, left_idx)
     }
 
     /// Determine optimal threshold to split data
