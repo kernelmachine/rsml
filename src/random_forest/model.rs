@@ -51,7 +51,7 @@ impl RandomForest {
         let range = Range::new(0, num_samples);
 
         (0..num_samples)
-            .map(|_| range.ind_sample(&mut StdRng::new().unwrap()))
+            .map(|_| range.ind_sample(&mut StdRng::new().expect("Error with random number generator"))))
             .collect::<Vec<_>>()
 
     }
