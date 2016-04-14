@@ -81,7 +81,21 @@ mod tests {
         assert!( y.all_close(&pred, 1e-8));
 
     }
+    
+    #[test]
+    fn break_tree(){
+        let rows = 500;
+        let cols = 20;
 
+        let X = OwnedArray::random((rows,cols), Range::new(0.,10.));
+        let mut rng = thread_rng();
+        let y = OwnedArray::from_vec((0..rows)
+                                .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
+                                .collect::<Vec<_>>());
+
+        let mut dt = DecisionTree::new();
+        dt.fit(&X,&y);
+    }
     #[bench]
     fn bench_tree(b: &mut Bencher) {
 
