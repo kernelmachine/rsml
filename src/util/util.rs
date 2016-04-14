@@ -64,7 +64,5 @@ pub fn noncontig_2d_slice(mat : &Mat<f64>, indices : &Vec<usize>)  -> Mat<f64> {
     let mat = indices.iter()
                         .map(|&x| mat.row(x).into_shape((1,mat.shape()[1]))
                         .ok().expect("Indexing Error")).collect::<Vec<_>>();
-    if let Ok(s) = mat.as_slice() {
-        stack(Axis(0), s)
-    }
+    stack(Axis(0), mat.as_slice().ok().expect("Error converting matrix to slice"))
 }
