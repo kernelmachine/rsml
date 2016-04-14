@@ -24,7 +24,7 @@ mod tests {
 
         let pred = rf.predict(&train).ok().unwrap();
 
-        assert!( target.all_close(&pred,0.1));
+        assert!( target.all_close(&pred,0.3));
 
     }
 
@@ -32,8 +32,8 @@ mod tests {
     #[bench]
     fn bench_rf(b: &mut Bencher) {
 
-        let rows = 2;
-        let cols = 2;
+        let rows = 20;
+        let cols = 20;
 
         let x = OwnedArray::random((rows,cols), Range::new(0.,10.));
         let mut rng = thread_rng();
