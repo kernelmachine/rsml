@@ -85,8 +85,8 @@ mod tests {
     #[bench]
     fn bench_tree(b: &mut Bencher) {
 
-        let rows = 500;
-        let cols = 2;
+        let rows = 20;
+        let cols = 20;
 
         let X = OwnedArray::random((rows,cols), Range::new(0.,10.));
         let mut rng = thread_rng();
