@@ -84,7 +84,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
         let mut df = OwnedArray::zeros(test.shape()[0]);
         for tree in self.trees.iter().cloned() {
             if let Ok(pred) = tree.predict(test){
-                df += pred;
+                df = df + pred;
             }
         }
 
