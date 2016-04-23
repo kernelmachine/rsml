@@ -72,7 +72,7 @@ mod tests {
 
         let y = OwnedArray::from_vec(vec![1.0, 0.0,0.0,0.0,0.0,1.0,1.0]);
 
-        let mut dt = DecisionTree::new();
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
 
         dt.fit(&X, &y);
 
@@ -81,7 +81,7 @@ mod tests {
         assert!( y.all_close(&pred, 1e-8));
 
     }
-    
+
     #[test]
     fn break_tree(){
         let rows = 500;
@@ -93,7 +93,7 @@ mod tests {
                                 .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
                                 .collect::<Vec<_>>());
 
-        let mut dt = DecisionTree::new();
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
         dt.fit(&X,&y);
     }
     #[bench]
@@ -108,7 +108,7 @@ mod tests {
                                 .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
                                 .collect::<Vec<_>>());
 
-        let mut dt = DecisionTree::new();
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
 
 
         b.iter(|| {

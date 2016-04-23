@@ -1,1 +1,0 @@
-{"rustc":1226592897134205659,"target":4883665667904394167,"profile":13023446655302672390,"local":{"variant":"Precalculated","fields":["0.4.7"]},"features":"None","deps":[["itertools v0.4.11",3558385183838721293],["matrixmultiply v0.1.3",5101840280435026485],["num v0.1.31",13142591023209826992]]}
