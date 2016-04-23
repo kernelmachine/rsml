@@ -35,14 +35,12 @@ pub enum Node {
     }
 }
 
-#[derive(Debug, Clone)]
-/// DecisionTree represents the full decision tree model
-
-pub struct DecisionTree{
+/// `DecisionTree` represents the full decision tree model
+pub struct DecisionTreeConfig{
     /// maximum depth of the tree
-    pub max_depth : i32,
+    pub max_depth : u32,
     /// minimum number of samples to split on
-    pub min_samples_split : i32,
+    pub min_samples_split : u32,
     /// number of features
     pub n_features : usize,
     /// number of outputs
@@ -55,11 +53,28 @@ pub struct DecisionTree{
     pub root: Option<Node>
 }
 
-impl DecisionTree {
-    /// create new decision tree
-    pub fn new() -> DecisionTree {
-        //initializing this with dummy values. Probably doesn't matter.
-        DecisionTree {
+#[derive(Debug, Clone)]
+/// `DecisionTree` represents the full decision tree model
+pub struct DecisionTree{
+    /// maximum depth of the tree
+    max_depth : u32,
+    /// minimum number of samples to split on
+    min_samples_split : u32,
+    /// number of features
+    n_features : usize,
+    /// number of outputs
+    n_outputs : usize,
+    /// array of classes
+    classes : Vec<f64>,
+    /// number of classes
+    n_classes : usize,
+    /// root node of tree
+    root: Option<Node>
+}
+
+impl Default for DecisionTreeConfig {
+    fn default() -> DecisionTreeConfig {
+        DecisionTreeConfig {
             max_depth : 0,
             min_samples_split : 0,
             n_features : 0,
@@ -67,6 +82,22 @@ impl DecisionTree {
             classes :vec![0.0],
             n_classes : 0,
             root : None
+        }
+    }
+}
+
+impl DecisionTree {
+    /// create new decision tree
+    pub fn from_config(cgf: DecisionTreeConfig) -> DecisionTree {
+        //initializing this with dummy values. Probably doesn't matter.
+        DecisionTree {
+            max_depth : cgf.max_depth,
+            min_samples_split : cgf.min_samples_split,
+            n_features : cgf.n_features,
+            n_outputs : cgf.n_outputs,
+            classes : cgf.classes,
+            n_classes : cgf.n_classes,
+            root : cgf.root,
         }
     }
 
@@ -242,9 +273,9 @@ impl DecisionTree {
         // now we split on the feature.
         let (left_data_idx,
                 right_data_idx) = DecisionTree::split(best_feature, best_feature_threshold);
-        if left_data_idx.len() > 0 && right_data_idx.len() > 0 {
+        if !left_data_idx.is_empty() && !right_data_idx.is_empty() {
                 // ndarray does not have support for noncontinguous slicing of matrices, so I
-                // had to hack my own one. Get the corresponding training and testing data for 
+                // had to hack my own one. Get the corresponding training and testing data for
                 // the left and right child nodes.
                 let left_train = noncontig_2d_slice(train, &left_data_idx);
                 let left_target = noncontig_1d_slice(target, &left_data_idx);
@@ -278,8 +309,8 @@ impl DecisionTree {
         /// * `y` - target data
         /// * `row_idx` - row index of test sample in test data
         pub fn query_tree(&self, node: &Node, test: &Sample<f64>) -> f64 {
-           match node {
-               &Node::Internal {feature,
+           match *node {
+               Node::Internal {feature,
                                 threshold,
                                 ref children} => {
                    match test[feature] <= threshold {
@@ -287,7 +318,7 @@ impl DecisionTree {
                        false => self.query_tree(&children.1, test),
                    }
                }
-               &Node::Leaf {probability} => probability,
+               Node::Leaf {probability} => probability,
            }
        }
 
@@ -337,7 +368,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree{
             }
             None => Err("Fit your tree to some data first!"),
         }
-            
+
     }
 
 

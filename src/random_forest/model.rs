@@ -4,7 +4,7 @@ use rand::distributions::{IndependentSample, Range};
 
 use rand::StdRng;
 use traits::SupervisedLearning;
-use tree::model::DecisionTree;
+use tree::model::{DecisionTree, DecisionTreeConfig};
 use util::util::{noncontig_1d_slice, noncontig_2d_slice};
 use rayon::prelude::*;
 
@@ -37,7 +37,7 @@ impl RandomForest {
     pub fn new(n_estimators : usize) -> RandomForest {
 
         RandomForest {
-            trees :  vec![DecisionTree::new(); n_estimators],
+            trees :  vec![DecisionTree::from_config(DecisionTreeConfig::default()); n_estimators],
         }
 
     }
