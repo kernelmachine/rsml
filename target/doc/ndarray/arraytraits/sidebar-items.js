@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["AsArray","Argument conversion into an array viewThe trait is parameterized over `A`, the element type, and `D`, the dimensionality of the array. `D` defaults to one-dimensional.Use `.into()` to do the conversion."]]});
