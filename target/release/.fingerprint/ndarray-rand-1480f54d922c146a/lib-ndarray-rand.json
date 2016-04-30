@@ -1,0 +1,1 @@
+{"rustc":1689549146317844358,"target":7533026138770673736,"profile":11411396542915816673,"local":{"variant":"Precalculated","fields":["0.1.0"]},"features":"None","deps":[["ndarray v0.4.7",15834103356646174526],["rand v0.3.14",2658952980785242980]],"rustflags":[]}
