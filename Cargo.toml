@@ -6,7 +6,7 @@ authors = ["suchin"]
 [dependencies]
 ndarray = "*"
 ndarray-rand = "*"
-
+cachetree = {path = "./cachetree"}
 typenum = "*"
 rand="*"
 rayon="*"
