@@ -98,7 +98,7 @@ mod tests {
         dt.fit(&X, &y);
     }
     #[bench]
-    fn bench_tree(b: &mut Bencher) {
+    fn bench_fit_tree(b: &mut Bencher) {
 
         let rows = 20;
         let cols = 20;
@@ -109,12 +109,31 @@ mod tests {
                                          .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
                                          .collect::<Vec<_>>());
 
-        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default(), 32);
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default(), 5);
 
 
         b.iter(|| {
             dt.fit(&X, &y);
         });
+    }
+
+    #[bench]
+    fn bench_build_tree(b: &mut Bencher) {
+        let rows = 20;
+        let cols = 20;
+
+        let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+        let mut rng = thread_rng();
+        let y = OwnedArray::from_vec((0..rows)
+                                         .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
+                                         .collect::<Vec<_>>());
+
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default(), 5);
+
+        b.iter(|| {
+            dt.build_tree(&X, &y, 0);
+        });
+
     }
 
 }

@@ -1,0 +1,8 @@
+old
+
+test random_forest::test::tests::bench_rf ... bench:  14,432,017 ns/iter (+/- 622,526)
+test tree::test::tests::bench_tree        ... bench:      25,943 ns/iter (+/- 19,302)
+
+new
+test random_forest::test::tests::bench_rf ... bench:  14,116,049 ns/iter (+/- 573,028)
+test tree::test::tests::bench_tree        ... bench:      26,089 ns/iter (+/- 23,023)
