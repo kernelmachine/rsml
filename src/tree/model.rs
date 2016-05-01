@@ -25,13 +25,12 @@ pub enum Node {
         feature: usize,
         /// Feature split threshold
         threshold: f64,
-        /// node left and right children, placed on heap.
-        children: Box<(Node, Node)>,
     },
     Leaf {
         /// terminal probability that the sample is of class 1.
         probability: f64,
     },
+    None,
 }
 
 /// `DecisionTree` represents the full decision tree model
@@ -48,8 +47,6 @@ pub struct DecisionTreeConfig {
     pub classes: Vec<f64>,
     /// number of classes
     pub n_classes: usize,
-    /// root node of tree
-    pub root: Option<Node>,
 }
 
 #[derive(Debug, Clone)]
@@ -67,8 +64,7 @@ pub struct DecisionTree {
     classes: Vec<f64>,
     /// number of classes
     n_classes: usize,
-    /// root node of tree
-    root: Option<Node>,
+    inner_tree: Vec<Node>,
 }
 
 impl Default for DecisionTreeConfig {
@@ -79,8 +75,7 @@ impl Default for DecisionTreeConfig {
             n_features: 0,
             n_outputs: 0,
             classes: vec![0.0],
-            n_classes: 0,
-            root: None,
+            n_classes: 0
         }
     }
 }
@@ -89,6 +84,10 @@ impl DecisionTree {
     /// create new decision tree
     pub fn from_config(cgf: DecisionTreeConfig) -> DecisionTree {
         // initializing this with dummy values. Probably doesn't matter.
+        let mut inner_tree = Vec::with_capacity(128);
+        for _ in 0..128 {
+            inner_tree.push(Node::None);
+        }
         DecisionTree {
             max_depth: cgf.max_depth,
             min_samples_split: cgf.min_samples_split,
@@ -96,7 +95,7 @@ impl DecisionTree {
             n_outputs: cgf.n_outputs,
             classes: cgf.classes,
             n_classes: cgf.n_classes,
-            root: cgf.root,
+            inner_tree: inner_tree,
         }
     }
 
@@ -232,7 +231,7 @@ impl DecisionTree {
     /// * `y` - target data
     /// * `indices` - indices of data subset fed to node
     /// * `depth` - current depth of tree
-    pub fn build_tree(&mut self, train: &Mat<f64>, target: &Col<f64>, depth: usize) -> Node {
+    pub fn build_tree(&mut self, train: &Mat<f64>, target: &Col<f64>, depth: usize, index: usize) -> Node {
         // here we calculate the probability that the sample maps to class 1.
         let num_plus = target.scalar_sum();
         let probability = num_plus as f64 / target.len() as f64;
@@ -258,6 +257,12 @@ impl DecisionTree {
 
         }
 
+        if index == 0 {
+            self.inner_tree[0] =  Node::Internal {
+                feature: best_feature_idx,
+                threshold: best_feature_threshold,
+            };
+        }
 
 
         let best_feature = train.column(best_feature_idx);
@@ -272,13 +277,17 @@ impl DecisionTree {
             let right_train = train.select(Axis(0), &right_data_idx);
             let right_target = target.select(Axis(0), &right_data_idx);
 
+            let left_ix = index * 2 + 1;
+            let right_ix = index * 2 + 2;
             // now we recursively build further nodes on left/right children.
-            let left = self.build_tree(&left_train, &left_target, depth + 1);
-            let right = self.build_tree(&right_train, &right_target, depth + 1);
+            let left = self.build_tree(&left_train, &left_target, depth + 1, left_ix);
+            let right = self.build_tree(&right_train, &right_target, depth + 1, right_ix);
+            self.inner_tree[left_ix] = left;
+            self.inner_tree[right_ix] = right;
+
             return Node::Internal {
                 feature: best_feature_idx,
                 threshold: best_feature_threshold,
-                children: Box::new((left, right)),
             };
 
         }
@@ -295,15 +304,36 @@ impl DecisionTree {
     /// * `X` - test data
     /// * `y` - target data
     /// * `row_idx` - row index of test sample in test data
-    pub fn query_tree(&self, node: &Node, test: &Sample<f64>) -> f64 {
-        match *node {
-            Node::Internal { feature, threshold, ref children } => {
-                match test[feature] <= threshold {
-                    true => self.query_tree(&children.0, test),
-                    false => self.query_tree(&children.1, test),
+    pub fn query_tree(&self, test: &Sample<f64>) -> f64 {
+        let mut i = 0;
+        loop {
+            match self.inner_tree[i] {
+                Node::Internal { feature, threshold } => {
+                    if test[feature] <= threshold {
+                        match self.inner_tree[i * 2 + 1] {
+                            Node::None => {
+                                panic!("Failed on left node: {}", i);
+                            }
+                            Node::Leaf { ref probability } => return *probability,
+                            Node::Internal { .. } => i = i * 2 + 1,
+
+                        }
+                    } else {
+                        match self.inner_tree[i * 2 + 2] {
+                            Node::None => {
+                                panic!("Failed on right node: {}", i);
+                            }
+                            Node::Leaf { ref probability } => return *probability,
+                            Node::Internal { .. } => i = i * 2 + 2,
+                        }
+                    }
+                }
+                Node::Leaf { ref probability } => return *probability,
+                Node::None => {
+                    println!("{:?}", self.inner_tree);
+                    panic!("Failed on parent node: {}", i);
                 }
             }
-            Node::Leaf { probability } => probability,
         }
     }
 }
@@ -333,22 +363,16 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree {
         self.n_outputs = n_outputs;
         self.classes = classes;
         self.n_classes = n_classes;
-        self.root = Some(self.build_tree(&train, &target, 1));
+        self.build_tree(train, target, 0,0);
     }
 
 
     fn predict(&self, test: &Mat<f64>) -> Result<Col<f64>, &'static str> {
+        let data = test.inner_iter()
+                       .map(|x| self.query_tree(&x))
+                       .collect::<Vec<_>>();
+        Ok(OwnedArray::from_vec(data))
 
-        match self.root {
-            Some(ref node) => {
-                // query tree on each row of test data
-                let data = test.inner_iter()
-                               .map(|x| self.query_tree(&node, &x))
-                               .collect::<Vec<_>>();
-                Ok(OwnedArray::from_vec(data))
-            }
-            None => Err("Fit your tree to some data first!"),
-        }
 
     }
 }
