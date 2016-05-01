@@ -90,7 +90,6 @@ mod tests {
         let cols = 20;
 
         let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
-<<<<<<< HEAD
 
         let mut rng = thread_rng();
         let y = OwnedArray::from_vec((0..rows)
@@ -110,8 +109,6 @@ mod tests {
 
         let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
 
-=======
->>>>>>> 95176b96e5bd41e7ebe0d51b380c7558dd6cf237
         let mut rng = thread_rng();
         let y = OwnedArray::from_vec((0..rows)
                                          .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
