@@ -3,9 +3,9 @@ from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 
 def foo():
-	X = np.random.rand(500,10000)
-        Y = np.random.choice([0,1],size = 500)
-	rf = RandomForestClassifier(n_estimators = 1000)
+	X = np.random.rand(50000,10)
+        Y = np.random.choice([0,1],size = 50000)
+	rf = RandomForestClassifier(n_estimators = 5)
 	rf.fit(X,Y)
 	import time
 	start = time.clock()

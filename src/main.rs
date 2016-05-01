@@ -20,8 +20,8 @@ use rand::{thread_rng, Rng};
 
 fn main() {
 
-    let rows = 2000;
-    let cols = 5;
+    let rows = 50000;
+    let cols = 10;
 
     let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
     let mut rng = thread_rng();
