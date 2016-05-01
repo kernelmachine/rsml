@@ -10,3 +10,14 @@ ndarray-rand = "*"
 typenum = "*"
 rand="*"
 rayon="*"
+
+[lib]
+name="rsml"
+path="src/lib.rs"
+
+[[bin]]
+name="rsml"
+path="src/main.rs"
+
+[profile.release]
+debug=true
