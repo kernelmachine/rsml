@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Node","Node represents a node of the decision tree: Internal or Leaf Node."]],"struct":[["DecisionTree","DecisionTree represents the full decision tree model"]],"type":[["Col","Col matrix."],["Feature","Feature view"],["Mat","Rectangular matrix."],["Sample","Sample view"]]});

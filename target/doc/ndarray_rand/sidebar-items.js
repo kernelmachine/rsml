@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["F32","A wrapper type that allows casting f64 distributions to f32"]],"trait":[["RandomExt","Constructors for n-dimensional arrays with random elements.This trait extends ndarray’s `ArrayBase` and can not be implemented for other types.The default Rng is a fast automatically seeded rng (currently `rand::weak_rng`)."]]});

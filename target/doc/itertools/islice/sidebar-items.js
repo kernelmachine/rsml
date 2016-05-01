@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ISlice","An iterator adaptor that yields a subset (a slice) of the base iterator.**Note:** slicing an iterator is not constant time, and much less efficient than slicing for example a vector.See *.slice()* for more information."]]});

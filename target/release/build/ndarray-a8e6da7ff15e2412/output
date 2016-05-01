@@ -1,4 +1,0 @@
-cargo:rerun-if-changed=build.rs
-cargo:rustc-cfg=has_deprecated
-cargo:rustc-cfg=has_assign
-cargo:rustc-cfg=feature="assign_ops"

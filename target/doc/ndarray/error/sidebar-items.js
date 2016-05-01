@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ErrorKind","Error code for an error related to array shape or layout.This enumeration is not exhaustive. The representation of the enum is not guaranteed."]],"struct":[["ShapeError","An error related to array shape or layout."]]});
