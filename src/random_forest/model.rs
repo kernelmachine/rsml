@@ -1,21 +1,21 @@
 #[allow(non_snake_case)]
-use ndarray::{Ix, ArrayView, OwnedArray };
+use ndarray::{Ix, ArrayView, OwnedArray, Axis};
 use rand::distributions::{IndependentSample, Range};
 
 use rand::StdRng;
 use traits::SupervisedLearning;
-use tree::model::DecisionTree;
-use util::util::{noncontig_1d_slice, noncontig_2d_slice};
+use tree::model::{DecisionTree, DecisionTreeConfig};
 use rayon::prelude::*;
-
+use ndarray_rand::RandomExt;
+use rand::{thread_rng, Rng};
 /// Rectangular matrix.
 pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 
 /// Feature view
-pub type Feature<'a,A> = ArrayView<'a,A, Ix>;
+pub type Feature<'a, A> = ArrayView<'a, A, Ix>;
 
 /// Feature view
-pub type Sample<'a,A> = ArrayView<'a,A, Ix>;
+pub type Sample<'a, A> = ArrayView<'a, A, Ix>;
 
 
 /// Col matrix.
@@ -26,7 +26,7 @@ pub type Col<A> = OwnedArray<A, Ix>;
 /// This represents the Random Forest.
 pub struct RandomForest {
     /// Vector of Decision Trees
-    pub trees : Vec<DecisionTree>,
+    pub trees: Vec<DecisionTree>,
 }
 
 impl RandomForest {
@@ -34,10 +34,10 @@ impl RandomForest {
     /// # Arguments:
     ///
     /// * `n_estimators` - number of decision trees you want
-    pub fn new(n_estimators : usize) -> RandomForest {
+    pub fn new(n_estimators: usize) -> RandomForest {
 
         RandomForest {
-            trees :  vec![DecisionTree::new(); n_estimators],
+            trees: vec![DecisionTree::from_config(DecisionTreeConfig::default()); n_estimators],
         }
 
     }
@@ -46,12 +46,12 @@ impl RandomForest {
     /// # Arguments:
     ///
     /// * `num_indices` - number of samples in the training data
-    pub fn bootstrap(num_samples: usize) -> Vec<usize> {
-
-        let range = Range::new(0, num_samples);
+    pub fn bootstrap(range: Range<usize>, num_samples: usize) -> Vec<usize> {
 
         (0..num_samples)
-            .map(|_| range.ind_sample(&mut StdRng::new().expect("Error with random number generator")))
+            .map(|_| {
+                range.ind_sample(&mut StdRng::new().expect("Error with random number generator"))
+            })
             .collect::<Vec<_>>()
 
     }
@@ -60,17 +60,24 @@ impl RandomForest {
 
 impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
     fn fit(&mut self, train: &Mat<f64>, target: &Col<f64>) {
-        for tree in self.trees.iter_mut() {
+        let index_matrix = OwnedArray::random((train.rows(), self.trees.len()),
+                                              Range::new(0, train.rows()));
 
+
+        for i in 0..self.trees.len() {
             // get random set of indices
-            let indices = RandomForest::bootstrap(train.rows());
-            // println!("{:?}", indices);
+            // let indices = RandomForest::bootstrap(train.rows());
             // sample data
-            let train_subset = noncontig_2d_slice(train,&indices);
-            let target_subset = noncontig_1d_slice(target, &indices);
+            let ind_col = index_matrix.column(i);
+            let indices = ind_col.to_owned();
+            let train_subset = train.select(Axis(0), indices.as_slice().unwrap());
+
+
+            let target_subset = target.select(Axis(0), indices.as_slice().unwrap());
+
 
             // train decision tree
-            tree.fit(&train_subset, &target_subset);
+            self.trees[i].fit(&train_subset, &target_subset);
 
         }
 
@@ -83,11 +90,10 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
 
         let mut df = OwnedArray::zeros(test.shape()[0]);
         for tree in self.trees.iter().cloned() {
-            if let Ok(pred) = tree.predict(test){
+            if let Ok(pred) = tree.predict(test) {
                 df = df + pred;
             }
         }
-
         df = df / (self.trees.len() as f64);
         Ok(df)
 

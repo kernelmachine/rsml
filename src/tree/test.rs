@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+
 #[cfg(test)]
 
 mod tests {
@@ -8,7 +9,7 @@ mod tests {
     use ndarray_rand::RandomExt;
     use traits::SupervisedLearning;
     use rand::distributions::Range;
-    use test::Bencher;
+    use self::test::Bencher;
     use rand::{thread_rng, Rng};
 
 
@@ -73,7 +74,7 @@ mod tests {
 
         let y = OwnedArray::from_vec(vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]);
 
-        let mut dt = DecisionTree::new();
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
 
         dt.fit(&X, &y);
 
@@ -89,12 +90,13 @@ mod tests {
         let cols = 20;
 
         let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+
         let mut rng = thread_rng();
         let y = OwnedArray::from_vec((0..rows)
                                          .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
                                          .collect::<Vec<_>>());
 
-        let mut dt = DecisionTree::new();
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
         dt.fit(&X, &y);
     }
 
@@ -106,18 +108,14 @@ mod tests {
         let cols = 20;
 
         let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+
         let mut rng = thread_rng();
         let y = OwnedArray::from_vec((0..rows)
                                          .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
                                          .collect::<Vec<_>>());
 
-        let mut dt = DecisionTree::new();
-
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
         dt.fit(&X, &y);
-
-        b.iter(|| {
-            dt.predict(&X);
-        });
     }
 
 
@@ -133,7 +131,7 @@ mod tests {
                                          .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
                                          .collect::<Vec<_>>());
 
-        let mut dt = DecisionTree::new();
+        let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
 
 
         b.iter(|| {
