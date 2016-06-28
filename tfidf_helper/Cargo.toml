@@ -1,0 +1,7 @@
+[package]
+name = "tfidf_helper"
+version = "0.1.0"
+authors = ["insanitybit <insanitybit@gmail.com>"]
+
+[dependencies]
+rust-tfidf = "*"
