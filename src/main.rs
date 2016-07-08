@@ -23,7 +23,7 @@ fn main() {
     let rows = 50000;
     let cols = 10;
 
-    let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+    let x = OwnedArray::random((rows, cols), Range::new(0., 10.));
     let mut rng = thread_rng();
     let y = OwnedArray::from_vec((0..rows)
                                      .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
@@ -31,8 +31,8 @@ fn main() {
 
     let mut rf = RandomForest::new(10);
 
-    rf.fit(&X, &y);
-    let pred = rf.predict(&X).ok().unwrap();
+    rf.fit(&x, &y);
+    let pred = rf.predict(&x).ok().unwrap();
 
     assert!(y.all_close(&pred, 0.3));
 

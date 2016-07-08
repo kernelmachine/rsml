@@ -11,6 +11,8 @@ typenum = "*"
 rand="*"
 rayon="*"
 
+rust-tfidf = "*"
+
 [lib]
 name="rsml"
 path="src/lib.rs"

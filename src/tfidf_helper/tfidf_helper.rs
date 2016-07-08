@@ -28,26 +28,3 @@ pub fn get_unique_word_list<'a>(sentence_list: &'a [&str]) -> Vec<&'a str> {
     words.dedup();
     words
 }
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tfidf::{TfIdf, TfIdfDefault};
-
-    #[test]
-    fn it_works() {
-        let strs = vec!["the quick brown fox", "the only fox fox red fox the", "quick black dog"];
-        let unique_word_list = get_unique_word_list(&strs[..]);
-
-        let docs: Vec<_> = strs.iter().map(|s| str_to_doc(s)).collect();
-
-        let all_docs = docs.clone();
-
-        for doc in docs.into_iter() {
-            for word in &unique_word_list {
-                let x = TfIdfDefault::tfidf(word, &doc, all_docs.iter());
-            }
-        }
-    }
-}
