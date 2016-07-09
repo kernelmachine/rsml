@@ -7,7 +7,7 @@ authors = ["suchin"]
 ndarray = "*"
 ndarray-rand = "*"
 
-typenum = "*"
+typenum = "1.2.*"
 rand="*"
 rayon="*"
 
