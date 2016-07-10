@@ -177,7 +177,9 @@ impl DecisionTree {
         let mut cumulative_y = 0.0;
         let mut cumulative_count = 0.0;
         let mut xy_pairs = feature.iter().zip(target.iter()).collect::<Vec<_>>();
+
         xy_pairs.sort_by(|a, b| a.0.partial_cmp(&b.0).expect("error with sorting x,y pairs"));
+
         let target_sum = target.scalar_sum();
         for (&x, &y) in xy_pairs {
             cumulative_count += 1.0;

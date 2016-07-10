@@ -5,9 +5,7 @@ use rand::distributions::{IndependentSample, Range};
 use rand::StdRng;
 use traits::SupervisedLearning;
 use tree::model::{DecisionTree, DecisionTreeConfig};
-use rayon::prelude::*;
 use ndarray_rand::RandomExt;
-use rand::{thread_rng, Rng};
 /// Rectangular matrix.
 pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 
