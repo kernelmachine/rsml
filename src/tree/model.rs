@@ -17,7 +17,7 @@ pub type Col<A> = OwnedArray<A, Ix>;
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
 /// Node represents a node of the decision tree: Internal or Leaf Node.
 pub enum Node {
     Internal {
@@ -52,8 +52,8 @@ pub struct DecisionTreeConfig {
     pub root: Option<Node>,
 }
 
-#[derive(Debug, Clone)]
 /// `DecisionTree` represents the full decision tree model
+#[derive(Debug, Clone, RustcDecodable, RustcEncodable)]
 pub struct DecisionTree {
     /// maximum depth of the tree
     max_depth: u32,
@@ -74,12 +74,12 @@ pub struct DecisionTree {
 impl Default for DecisionTreeConfig {
     fn default() -> DecisionTreeConfig {
         DecisionTreeConfig {
-            max_depth: 0,
-            min_samples_split: 0,
-            n_features: 0,
-            n_outputs: 0,
-            classes: vec![0.0],
-            n_classes: 0,
+            max_depth: 1024,
+            min_samples_split: 2,
+            n_features: 2,
+            n_outputs: 2,
+            classes: vec![0.0, 1.0],
+            n_classes: 2,
             root: None,
         }
     }
@@ -260,8 +260,6 @@ impl DecisionTree {
 
         }
 
-
-
         let best_feature = train.column(best_feature_idx);
 
         // now we split on the feature.
@@ -325,9 +323,9 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree {
         let n_classes = classes.len();
 
         // you can probably play around with these values.
-        let max_depth = 15;
+        let max_depth = 4200;
 
-        let min_samples_split = 2;
+        let min_samples_split = 4;
 
         self.max_depth = max_depth;
         self.min_samples_split = min_samples_split;

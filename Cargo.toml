@@ -6,20 +6,21 @@ authors = ["suchin"]
 [dependencies]
 ndarray = "*"
 ndarray-rand = "*"
-
+serde = "*"
+serde_json = "*"
 typenum = "1.2.*"
 rand="*"
 rayon="*"
 
 rust-tfidf = "*"
-
+rustc-serialize = "0.3"
 [lib]
 name="rsml"
 path="src/lib.rs"
 
-[[bin]]
-name="rsml"
-path="src/main.rs"
+# [[bin]]
+# name="rsml"
+# path="src/main.rs"
 
 [profile.release]
 debug=true

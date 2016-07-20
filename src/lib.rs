@@ -1,4 +1,4 @@
-#![feature(custom_derive)]
+#![feature(custom_derive, plugin)]
 #![feature(test)]
 #[macro_use(s)]
 
@@ -6,9 +6,11 @@ extern crate ndarray;
 extern crate typenum;
 extern crate rand;
 extern crate ndarray_rand;
+extern crate rustc_serialize;
 extern crate test;
 extern crate rayon;
 extern crate tfidf;
+extern crate serde;
 
 pub mod tree;
 pub mod traits;

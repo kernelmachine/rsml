@@ -1,4 +1,9 @@
-#[allow(non_snake_case)]
+#![plugin(serde_macros)]
+#![allow(non_snake_case)]
+extern crate serde_json;
+extern crate serde;
+extern crate rustc_serialize;
+
 use ndarray::{Ix, ArrayView, OwnedArray, Axis};
 use rand::distributions::{IndependentSample, Range};
 
@@ -6,6 +11,8 @@ use rand::StdRng;
 use traits::SupervisedLearning;
 use tree::model::{DecisionTree, DecisionTreeConfig};
 use ndarray_rand::RandomExt;
+use serde::ser::Serialize;
+use serde::de::Deserialize;
 /// Rectangular matrix.
 pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
 
@@ -22,6 +29,7 @@ pub type Col<A> = OwnedArray<A, Ix>;
 
 
 /// This represents the Random Forest.
+#[derive(Debug, RustcDecodable, RustcEncodable)]
 pub struct RandomForest {
     /// Vector of Decision Trees
     pub trees: Vec<DecisionTree>,
