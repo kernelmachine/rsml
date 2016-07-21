@@ -1,10 +1,10 @@
-use ndarray::{OwnedArray, Ix};
+use ndarray::{Array, Ix};
 
 
 /// Rectangular matrix.
-pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
+pub type Mat<A> = Array<A, (Ix, Ix)>;
 /// Col matrix.
-pub type Col<A> = OwnedArray<A, Ix>;
+pub type Col<A> = Array<A, Ix>;
 
 /// Trait for supervised learning.
 pub trait SupervisedLearning<A, B> {

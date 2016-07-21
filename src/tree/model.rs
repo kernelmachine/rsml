@@ -1,9 +1,9 @@
 
-use ndarray::{Ix, ArrayView, OwnedArray, Axis};
+use ndarray::{Ix, ArrayView, Array, Axis};
 use traits::SupervisedLearning;
 
 /// Rectangular matrix.
-pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
+pub type Mat<A> = Array<A, (Ix, Ix)>;
 
 /// Feature view
 pub type Feature<'a, A> = ArrayView<'a, A, Ix>;
@@ -13,7 +13,7 @@ pub type Sample<'a, A> = ArrayView<'a, A, Ix>;
 
 
 /// Col matrix.
-pub type Col<A> = OwnedArray<A, Ix>;
+pub type Col<A> = Array<A, Ix>;
 
 
 
@@ -115,11 +115,11 @@ impl DecisionTree {
     /// extern crate rand;
     /// extern crate ndarray_rand;
     /// use ndarray_rand::RandomExt;
-    /// use ndarray::OwnedArray;
+    /// use ndarray::Array;
     /// use rand::distributions::Range;
     /// use rsml::tree::model::DecisionTree;
     /// fn main(){
-    ///     let z = OwnedArray::random((10,5), Range::new(0.,10.));
+    ///     let z = Array::random((10,5), Range::new(0.,10.));
     ///     let feature_idx = 4;
     ///     let value = 4.0;
     ///     let (left, right) = DecisionTree::split(z.column(feature_idx),value);
@@ -155,11 +155,11 @@ impl DecisionTree {
     /// ```
     /// extern crate ndarray;
     /// extern crate rsml;
-    /// use ndarray :: {arr2, OwnedArray};
+    /// use ndarray :: {arr2, Array};
     /// use rsml::tree::model::*;
     /// fn main(){
     ///     let x = arr2(&[[-1.0], [-0.5], [0.0], [0.0],[0.0],[0.5],[1.0]]);
-    ///     let y = OwnedArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+    ///     let y = Array::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
     ///     let (threshold, split_impurity) = DecisionTree::find_optimal_split(x.column(0), &y);
     ///     assert!(threshold == -0.5);
     ///     assert!(split_impurity == 0.0);
@@ -345,7 +345,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree {
                 let data = test.inner_iter()
                                .map(|x| self.query_tree(&node, &x))
                                .collect::<Vec<_>>();
-                Ok(OwnedArray::from_vec(data))
+                Ok(Array::from_vec(data))
             }
             None => Err("Fit your tree to some data first!"),
         }

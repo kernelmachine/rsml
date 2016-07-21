@@ -1,15 +1,15 @@
 
-use ndarray::{OwnedArray, Ix, Axis, ArrayView, stack};
+use ndarray::{Array, Ix, Axis, ArrayView, stack};
 
 
 /// Rectangular matrix.
-pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
+pub type Mat<A> = Array<A, (Ix, Ix)>;
 
 /// Feature view
 pub type Feature<'a, A> = ArrayView<'a, A, Ix>;
 
 /// Col matrix.
-pub type Col<A> = OwnedArray<A, Ix>;
+pub type Col<A> = Array<A, Ix>;
 
 
 
@@ -25,22 +25,22 @@ pub type Col<A> = OwnedArray<A, Ix>;
 /// extern crate rsml;
 /// extern crate ndarray;
 /// use rsml::util::util::*;
-/// use ndarray::OwnedArray;
+/// use ndarray::Array;
 /// fn main(){
-/// let y = OwnedArray::from_vec(vec![1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]);
+/// let y = Array::from_vec(vec![1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0]);
 /// let s = noncontig_1d_slice(&y,&vec![0,2,4,6]);
-/// let target = OwnedArray::from_vec(vec![1.0, 1.0, 1.0, 1.0]);
+/// let target = Array::from_vec(vec![1.0, 1.0, 1.0, 1.0]);
 /// assert!(s.all_close(&target,1e-8))
 /// }
 /// ```
 
 pub fn noncontig_1d_slice(mat: &Col<f64>, indices: &[usize]) -> Col<f64> {
-    OwnedArray::from_vec(indices.iter()
-                                .cloned()
-                                .collect::<Vec<_>>()
-                                .iter()
-                                .map(|&x| mat[x])
-                                .collect::<Vec<_>>())
+    Array::from_vec(indices.iter()
+                           .cloned()
+                           .collect::<Vec<_>>()
+                           .iter()
+                           .map(|&x| mat[x])
+                           .collect::<Vec<_>>())
 
 }
 

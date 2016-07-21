@@ -1,20 +1,17 @@
-#![plugin(serde_macros)]
 #![allow(non_snake_case)]
 extern crate serde_json;
 extern crate serde;
 extern crate rustc_serialize;
 
-use ndarray::{Ix, ArrayView, OwnedArray, Axis};
+use ndarray::{Ix, ArrayView, Array, Axis};
 use rand::distributions::{IndependentSample, Range};
 
 use rand::StdRng;
 use traits::SupervisedLearning;
 use tree::model::{DecisionTree, DecisionTreeConfig};
 use ndarray_rand::RandomExt;
-use serde::ser::Serialize;
-use serde::de::Deserialize;
 /// Rectangular matrix.
-pub type Mat<A> = OwnedArray<A, (Ix, Ix)>;
+pub type Mat<A> = Array<A, (Ix, Ix)>;
 
 /// Feature view
 pub type Feature<'a, A> = ArrayView<'a, A, Ix>;
@@ -24,7 +21,7 @@ pub type Sample<'a, A> = ArrayView<'a, A, Ix>;
 
 
 /// Col matrix.
-pub type Col<A> = OwnedArray<A, Ix>;
+pub type Col<A> = Array<A, Ix>;
 
 
 
@@ -66,8 +63,8 @@ impl RandomForest {
 
 impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
     fn fit(&mut self, train: &Mat<f64>, target: &Col<f64>) {
-        let index_matrix = OwnedArray::random((train.rows(), self.trees.len()),
-                                              Range::new(0, train.rows()));
+        let index_matrix = Array::random((train.rows(), self.trees.len()),
+                                         Range::new(0, train.rows()));
 
 
         for i in 0..self.trees.len() {
@@ -94,7 +91,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for RandomForest {
         // decision trees trained on random subsets of the data.
 
 
-        let mut df = OwnedArray::zeros(test.shape()[0]);
+        let mut df = Array::zeros(test.shape()[0]);
         for tree in self.trees.iter().cloned() {
             if let Ok(pred) = tree.predict(test) {
                 df = df + pred;

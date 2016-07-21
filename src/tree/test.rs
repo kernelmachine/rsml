@@ -5,7 +5,7 @@
 mod tests {
     extern crate test;
     use tree::model::*;
-    use ndarray::{OwnedArray, arr2};
+    use ndarray::{Array, arr2};
     use ndarray_rand::RandomExt;
     use traits::SupervisedLearning;
     use rand::distributions::Range;
@@ -31,7 +31,7 @@ mod tests {
 
     #[test]
     fn test_split() {
-        let X = OwnedArray::random((10, 5), Range::new(0., 10.));
+        let X = Array::random((10, 5), Range::new(0., 10.));
         let feature_idx = 4;
         let value = 4.0;
         let (left, right) = DecisionTree::split(X.column(feature_idx), value);
@@ -44,7 +44,7 @@ mod tests {
 
         let X = arr2(&[[-8.0], [-2.0], [0.0], [0.0], [0.0], [0.2], [1.0]]);
 
-        let y = OwnedArray::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
+        let y = Array::from_vec(vec![1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]);
 
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
         assert!(threshold == -2.0);
@@ -57,7 +57,7 @@ mod tests {
 
         let X = arr2(&[[-8.0], [-2.0], [0.0], [0.0], [0.0], [0.2], [1.0]]);
 
-        let y = OwnedArray::from_vec(vec![1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
+        let y = Array::from_vec(vec![1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0]);
 
         let (threshold, split_impurity) = DecisionTree::find_optimal_split(X.column(0), &y);
 
@@ -72,7 +72,7 @@ mod tests {
         let X = arr2(&[[0.0, 1.0], [1.0, 0.0], [1.0, 0.0], [1.0, 0.0], [1.0, 0.0], [0.0, 1.0],
                        [0.0, 1.0]]);
 
-        let y = OwnedArray::from_vec(vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]);
+        let y = Array::from_vec(vec![1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0]);
 
         let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
 
@@ -89,12 +89,12 @@ mod tests {
         let rows = 500;
         let cols = 20;
 
-        let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+        let X = Array::random((rows, cols), Range::new(0., 10.));
 
         let mut rng = thread_rng();
-        let y = OwnedArray::from_vec((0..rows)
-                                         .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
-                                         .collect::<Vec<_>>());
+        let y = Array::from_vec((0..rows)
+                                    .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
+                                    .collect::<Vec<_>>());
 
         let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
         dt.fit(&X, &y);
@@ -107,12 +107,12 @@ mod tests {
         let rows = 20;
         let cols = 20;
 
-        let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+        let X = Array::random((rows, cols), Range::new(0., 10.));
 
         let mut rng = thread_rng();
-        let y = OwnedArray::from_vec((0..rows)
-                                         .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
-                                         .collect::<Vec<_>>());
+        let y = Array::from_vec((0..rows)
+                                    .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
+                                    .collect::<Vec<_>>());
 
         let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
         dt.fit(&X, &y);
@@ -125,11 +125,11 @@ mod tests {
         let rows = 20;
         let cols = 20;
 
-        let X = OwnedArray::random((rows, cols), Range::new(0., 10.));
+        let X = Array::random((rows, cols), Range::new(0., 10.));
         let mut rng = thread_rng();
-        let y = OwnedArray::from_vec((0..rows)
-                                         .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
-                                         .collect::<Vec<_>>());
+        let y = Array::from_vec((0..rows)
+                                    .map(|_| *rng.choose(&vec![0.0, 1.0][..]).unwrap())
+                                    .collect::<Vec<_>>());
 
         let mut dt = DecisionTree::from_config(DecisionTreeConfig::default());
 
