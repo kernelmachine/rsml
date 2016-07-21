@@ -56,7 +56,7 @@ fn get_words(sentence: &str) -> Vec<String> {
            .collect()
 }
 
-fn depluralize<'a>(s: &'a str) -> &'a str {
+fn depluralize(s: &str) -> &str {
     if s.chars().last().unwrap() == 's' {
         &s[..s.len() - 2]
     } else {
