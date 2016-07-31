@@ -16,6 +16,9 @@ pub fn str_to_doc(string: &str) -> Vec<(String, usize)> {
 }
 
 fn get_words(sentence: &str) -> Vec<String> {
+    // This whole function could easily be optimized by turning the sentence into a Vec<u8>.
+    // We can, fo rour purposes, simply strip out all non-ascii characters, and then do in-place
+    // replacements. This would incur only a single copy for the function..
     let cleaned = sentence;
     let cleaned = cleaned.replace(".", " ");
     let cleaned = cleaned.replace("?", " ");

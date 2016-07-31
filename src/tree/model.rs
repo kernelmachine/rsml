@@ -240,8 +240,7 @@ impl DecisionTree {
         let probability = num_plus as f64 / target.len() as f64;
 
         // if any of these conditions are met, then we terminate the tree.
-        if probability.round() == 0.0 || probability.round() == 1.0 ||
-           depth > self.max_depth as usize ||
+        if probability == 0.0 || probability == 1.0 || depth > self.max_depth as usize ||
            target.len() < self.min_samples_split as usize {
             return Node::Leaf { probability: probability };
         }
@@ -251,7 +250,7 @@ impl DecisionTree {
         let mut best_feature_threshold = 0.0 as f64;
         let mut best_impurity = 1.0f64 / 0.0f64;
         for (feature_idx, feature) in train.axis_iter(Axis(1)).enumerate() {
-            let (threshold, impurity) = DecisionTree::find_optimal_split(feature, target);
+            let (threshold, impurity) = DecisionTree::find_optimal_split(feature, &target);
 
             if impurity < best_impurity {
                 best_feature_idx = feature_idx;
@@ -299,10 +298,9 @@ impl DecisionTree {
     pub fn query_tree(&self, node: &Node, test: &Sample<f64>) -> f64 {
         match *node {
             Node::Internal { feature, threshold, ref children } => {
-                if test[feature] <= threshold {
-                    self.query_tree(&children.0, test)
-                } else {
-                    self.query_tree(&children.1, test)
+                match test[feature] <= threshold {
+                    true => self.query_tree(&children.0, test),
+                    false => self.query_tree(&children.1, test),
                 }
             }
             Node::Leaf { probability } => probability,
@@ -317,7 +315,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree {
 
         // ndarray doesn't have support for uniquing a vector, so here's how I do it.
         let mut target_cloned = target.iter().cloned().collect::<Vec<f64>>();
-        target_cloned.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        target_cloned.sort_by(|a, b| a.partial_cmp(&b).unwrap());
         target_cloned.dedup();
 
         let classes = target_cloned;
@@ -335,7 +333,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree {
         self.n_outputs = n_outputs;
         self.classes = classes;
         self.n_classes = n_classes;
-        self.root = Some(self.build_tree(train, target, 1));
+        self.root = Some(self.build_tree(&train, &target, 1));
     }
 
 
@@ -345,7 +343,7 @@ impl SupervisedLearning<Mat<f64>, Col<f64>> for DecisionTree {
             Some(ref node) => {
                 // query tree on each row of test data
                 let data = test.inner_iter()
-                               .map(|x| self.query_tree(node, &x))
+                               .map(|x| self.query_tree(&node, &x))
                                .collect::<Vec<_>>();
                 Ok(Array::from_vec(data))
             }
