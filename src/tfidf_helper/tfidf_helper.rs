@@ -15,53 +15,80 @@ pub fn str_to_doc(string: &str) -> Vec<(String, usize)> {
     word_map.into_iter().map(|(word, count)| (word, count)).collect()
 }
 
-fn get_words(sentence: &str) -> Vec<String> {
+fn should_replace(c: u8) -> bool {
+    match c {
+        b'.' => true,
+        b'?' => true,
+        b'!' => true,
+        b',' => true,
+        b':' => true,
+        b';' => true,
+        b'(' => true,
+        b')' => true,
+        b'{' => true,
+        b'}' => true,
+        b']' => true,
+        b'[' => true,
+        b'/' => true,
+        b'=' => true,
+        b'|' => true,
+        b'~' => true,
+        _ => false,
+    }
+}
+
+fn should_drop(c: u8) -> bool {
+    match c {
+        b'\'' => true,
+        b'\"' => true,
+        b'`' => true,
+        b'-' => true,
+        b'_' => true,
+        b'*' => true,
+        b'&' => true,
+        _ => false,
+    }
+}
+
+pub fn get_words(sentence: &str) -> Vec<String> {
     // This whole function could easily be optimized by turning the sentence into a Vec<u8>.
     // We can, fo rour purposes, simply strip out all non-ascii characters, and then do in-place
     // replacements. This would incur only a single copy for the function..
     let cleaned = sentence;
-    let cleaned = cleaned.replace(".", " ");
-    let cleaned = cleaned.replace("?", " ");
-    let cleaned = cleaned.replace("!", " ");
-    let cleaned = cleaned.replace(",", " ");
-    let cleaned = cleaned.replace(":", " ");
-    let cleaned = cleaned.replace(";", " ");
-    let cleaned = cleaned.replace("'", "");
-    let cleaned = cleaned.replace("\"", "");
-    let cleaned = cleaned.replace("(", " ");
-    let cleaned = cleaned.replace(")", " ");
-    let cleaned = cleaned.replace("`", "");
-    let cleaned = cleaned.replace("{", " ");
-    let cleaned = cleaned.replace("}", " ");
-    let cleaned = cleaned.replace("]", " ");
-    let cleaned = cleaned.replace("[", " ");
-    let cleaned = cleaned.replace("-", "");
-    let cleaned = cleaned.replace("_", "");
-    let cleaned = cleaned.replace("&amp", "");
-    let cleaned = cleaned.replace("&gt", "");
-    let cleaned = cleaned.replace("&lt", "");
-    let cleaned = cleaned.replace("*", "");;
-    let cleaned = cleaned.replace("/", " ");
-    let cleaned = cleaned.replace("=", " ");
-    let cleaned = cleaned.replace("|", " ");
-    let cleaned = cleaned.replace("~", " ");
-    let cleaned = cleaned.to_lowercase();
+
     let cleaned: String = cleaned.chars()
                                  .filter(|c| c.is_ascii())
                                  .collect();
 
+    let mut cleaned: Vec<u8> = cleaned.bytes().collect();
+
+    for c in cleaned.as_mut_slice() {
+        if should_replace(*c) {
+            *c = b' ';
+        }
+    }
+
+    let cleaned: Vec<_> = cleaned.into_iter()
+                                 .filter(|c| !should_drop(*c))
+                                 .collect();
+
+    // We take in a &str and filter all non-ascii out, this is safe
+    let cleaned = unsafe { String::from_utf8_unchecked(cleaned) };
+    let cleaned = cleaned.to_lowercase();
+
+
     cleaned.split_whitespace()
-           .filter(|s| 3 < s.len() && s.len() < 7)
+           .filter(|s| 2 < s.len() && s.len() < 10)
            .filter(|s| s.chars().all(is_letter))
            .map(depluralize)
-           .filter(|s| 3 < s.len())
+           .filter(|s| 2 < s.len())
            .map(String::from)
            .collect()
 }
 
 fn depluralize(s: &str) -> &str {
     if s.chars().last().unwrap() == 's' {
-        &s[..s.len() - 2]
+        &s[..s.len() - 1]
     } else {
         s
     }
@@ -95,6 +122,6 @@ mod tests {
     fn test_depluralize() {
         assert_eq!("dog", depluralize("dogs"));
         assert_eq!("jersey", depluralize("jersey"));
-        assert_eq!("jersey", depluralize("dress"));
+        assert_eq!("dres", depluralize("dress"));
     }
 }
